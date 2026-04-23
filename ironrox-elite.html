@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IronRox Elite – HYROX Training Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080809;
+  --bg2:#0f0f11;
+  --bg3:#161618;
+  --bg4:#1e1e21;
+  --card:#131315;
+  --border:#2a2a2e;
+  --lime:#c8f135;
+  --lime2:#a8d420;
+  --orange:#ff6b2b;
+  --orange2:#e05520;
+  --red:#ff3b3b;
+  --blue:#3b82f6;
+  --muted:#5a5a60;
+  --text:#e8e8ec;
+  --text2:#9898a0;
+  --text3:#5a5a60;
+  --font-head:'Barlow Condensed',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* LAYOUT */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:10}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* SIDEBAR */
+.logo{padding:28px 24px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.logo-icon{width:36px;height:36px;background:var(--lime);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:20px;height:20px}
+.logo-text{font-family:var(--font-head);font-size:20px;font-weight:800;letter-spacing:0.5px;line-height:1}
+.logo-text span{color:var(--lime)}
+.logo-sub{font-size:10px;color:var(--text3);font-weight:400;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+
+.nav{flex:1;padding:16px 12px}
+.nav-section{margin-bottom:24px}
+.nav-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:600;padding:0 12px;margin-bottom:8px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all 0.15s;color:var(--text2);font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg4);color:var(--text)}
+.nav-item.active{background:rgba(200,241,53,0.1);color:var(--lime);border:1px solid rgba(200,241,53,0.2)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px}
+
+.sidebar-bottom{padding:16px 12px;border-top:1px solid var(--border)}
+.athlete-card{background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.athlete-avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--lime),var(--orange));border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:14px;color:#000;flex-shrink:0}
+.athlete-name{font-size:13px;font-weight:600}
+.athlete-div{font-size:11px;color:var(--text3)}
+
+/* TOP BAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-family:var(--font-head);font-size:26px;font-weight:800;letter-spacing:0.3px}
+.page-title span{color:var(--lime)}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.week-badge{background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.3);color:var(--lime);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;font-family:var(--font-head)}
+.phase-badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;font-family:var(--font-head)}
+.phase-foundation{background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:#60a5fa}
+.phase-strength{background:rgba(255,107,43,0.15);border:1px solid rgba(255,107,43,0.3);color:var(--orange)}
+.phase-peak{background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.3);color:var(--lime)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px var(--lime)}
+
+/* CONTENT AREA */
+.content{padding:24px 28px;flex:1}
+
+/* GRID LAYOUTS */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.grid-3-1{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-family:var(--font-head);font-size:15px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text2)}
+.card-action{font-size:12px;color:var(--lime);cursor:pointer;font-weight:600;border:none;background:none;letter-spacing:0.3px}
+
+/* STAT CARDS */
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.stat-card.green{border-color:rgba(200,241,53,0.3);background:rgba(200,241,53,0.04)}
+.stat-card.orange{border-color:rgba(255,107,43,0.3);background:rgba(255,107,43,0.04)}
+.stat-card.red{border-color:rgba(255,59,59,0.4);background:rgba(255,59,59,0.06)}
+.stat-glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;filter:blur(25px);opacity:0.15}
+.stat-glow.lime{background:var(--lime)}
+.stat-glow.orange{background:var(--orange)}
+.stat-glow.red{background:var(--red)}
+.stat-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:8px}
+.stat-value{font-family:var(--font-head);font-size:38px;font-weight:900;line-height:1;letter-spacing:-0.5px}
+.stat-value.lime{color:var(--lime)}
+.stat-value.orange{color:var(--orange)}
+.stat-value.red{color:var(--red)}
+.stat-sub{font-size:12px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:4px}
+.stat-sub .up{color:var(--lime)}
+.stat-sub .down{color:var(--red)}
+
+/* PROGRESS RING */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.ring-row{display:flex;justify-content:space-around;margin:8px 0}
+svg.ring{transform:rotate(-90deg)}
+.ring-text{font-family:var(--font-head);font-size:22px;font-weight:800;fill:var(--text)}
+.ring-sub{font-size:11px;fill:var(--text3);font-family:'DM Sans',sans-serif}
+
+/* TODAY'S WORKOUT */
+.workout-header{background:linear-gradient(135deg,rgba(200,241,53,0.08),rgba(255,107,43,0.05));border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
+.workout-header::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--lime),var(--orange))}
+.workout-type{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--lime);font-weight:700;margin-bottom:6px}
+.workout-name{font-family:var(--font-head);font-size:28px;font-weight:900;letter-spacing:0.3px;margin-bottom:4px}
+.workout-meta{display:flex;gap:16px;font-size:13px;color:var(--text2);margin-top:8px}
+.workout-meta span{display:flex;align-items:center;gap:5px}
+
+/* STATION LIST */
+.station-list{display:flex;flex-direction:column;gap:8px}
+.station-item{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s}
+.station-item:hover{border-color:var(--lime);background:rgba(200,241,53,0.04)}
+.station-item.done{border-color:rgba(200,241,53,0.4);background:rgba(200,241,53,0.06)}
+.station-item.done .station-num{background:var(--lime);color:#000}
+.station-num{width:32px;height:32px;border-radius:8px;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:15px;flex-shrink:0;transition:all 0.15s}
+.station-info{flex:1}
+.station-name{font-weight:600;font-size:14px;margin-bottom:2px}
+.station-detail{font-size:12px;color:var(--text3)}
+.station-target{text-align:right}
+.station-target-val{font-family:var(--font-head);font-size:18px;font-weight:800;color:var(--lime)}
+.station-target-unit{font-size:11px;color:var(--text3)}
+.station-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;cursor:pointer}
+.station-item.done .station-check{background:var(--lime);border-color:var(--lime)}
+.station-run{background:linear-gradient(90deg,rgba(200,241,53,0.08),transparent);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.run-icon{font-family:var(--font-head);font-size:11px;font-weight:800;letter-spacing:1px;color:var(--lime);text-transform:uppercase;background:rgba(200,241,53,0.15);padding:4px 8px;border-radius:5px}
+
+/* MACRO BARS */
+.macro-bar-wrap{margin-bottom:12px}
+.macro-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px}
+.macro-name{font-weight:600}
+.macro-vals{color:var(--text2);font-size:12px}
+.bar-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+.bar-carb{background:linear-gradient(90deg,#60a5fa,#3b82f6)}
+.bar-protein{background:linear-gradient(90deg,var(--lime),var(--lime2))}
+.bar-fat{background:linear-gradient(90deg,var(--orange),var(--orange2))}
+
+/* MEAL LOG */
+.meal-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.meal-item:last-child{border-bottom:none}
+.meal-time{font-size:11px;color:var(--text3);width:50px;flex-shrink:0}
+.meal-name{font-size:13px;font-weight:500;flex:1}
+.meal-cals{font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--text2)}
+.meal-check{width:18px;height:18px;border-radius:4px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.meal-check.done{background:var(--lime);border-color:var(--lime)}
+
+/* PERIODIZATION */
+.period-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.period-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.period-card.active{border-color:rgba(200,241,53,0.4)}
+.period-card.active::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--lime)}
+.period-month{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:4px}
+.period-phase{font-family:var(--font-head);font-size:16px;font-weight:800;margin-bottom:4px}
+.period-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.period-weeks{display:flex;gap:3px;margin-top:8px}
+.week-dot{width:14px;height:14px;border-radius:3px;background:var(--bg4)}
+.week-dot.done{background:var(--lime)}
+.week-dot.current{background:rgba(200,241,53,0.4);border:1px solid var(--lime)}
+
+/* RACE PREDICTOR */
+.predictor-display{text-align:center;padding:20px 0}
+.predicted-time{font-family:var(--font-head);font-size:64px;font-weight:900;color:var(--lime);letter-spacing:-2px;line-height:1}
+.predicted-label{font-size:12px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;font-weight:600}
+.predictor-breakdown{display:flex;justify-content:space-around;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.pred-item{text-align:center}
+.pred-val{font-family:var(--font-head);font-size:20px;font-weight:800}
+.pred-lab{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* STREAK */
+.streak-display{display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)}
+.streak-num{font-family:var(--font-head);font-size:48px;font-weight:900;color:var(--orange);line-height:1}
+.streak-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-top:2px}
+.streak-days{display:flex;gap:5px;margin-top:8px}
+.streak-day{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+.streak-day.done{background:rgba(255,107,43,0.2);border:1px solid rgba(255,107,43,0.4);color:var(--orange)}
+.streak-day.missed{background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.2);color:var(--red)}
+.streak-day.today{background:var(--orange);color:#000;font-weight:800}
+.streak-day.future{background:var(--bg4);border:1px solid var(--border);color:var(--text3)}
+
+/* RED ZONE ALERT */
+.red-zone{background:rgba(255,59,59,0.08);border:1px solid rgba(255,59,59,0.4);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.red-zone-dot{width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0;animation:pulse-red 1.5s infinite}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(255,59,59,0.5)}50%{box-shadow:0 0 0 6px rgba(255,59,59,0)}}
+.red-zone-text{font-size:13px;color:#ff8080;flex:1}
+.red-zone-text strong{color:var(--red)}
+
+/* COMP SIM BUTTON */
+.comp-sim-btn{background:linear-gradient(135deg,var(--lime),var(--lime2));color:#000;border:none;padding:14px 24px;border-radius:10px;font-family:var(--font-head);font-size:16px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.2s;width:100%;justify-content:center}
+.comp-sim-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(200,241,53,0.25)}
+.comp-sim-btn svg{width:18px;height:18px}
+
+/* CHART AREA */
+.chart-wrap{position:relative;width:100%;height:180px;margin-top:8px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;padding:4px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);margin-bottom:16px}
+.tab{flex:1;padding:8px;border-radius:7px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text3);transition:all 0.15s;font-family:var(--font-body)}
+.tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border)}
+
+/* VOLUME HEATMAP */
+.heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.heatmap-day{height:28px;border-radius:4px;background:var(--bg4)}
+.heatmap-day.v1{background:rgba(200,241,53,0.15)}
+.heatmap-day.v2{background:rgba(200,241,53,0.30)}
+.heatmap-day.v3{background:rgba(200,241,53,0.50)}
+.heatmap-day.v4{background:rgba(200,241,53,0.75)}
+.heatmap-day.v5{background:var(--lime)}
+.heatmap-labels{display:flex;justify-content:space-between;margin-bottom:4px}
+.heatmap-labels span{font-size:10px;color:var(--text3);text-align:center;flex:1}
+
+/* ONBOARDING OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.onboard-modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:560px;max-height:80vh;overflow-y:auto;position:relative}
+.onboard-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--lime),var(--orange))}
+.onboard-header{padding:28px 28px 0}
+.onboard-header h2{font-family:var(--font-head);font-size:32px;font-weight:900;letter-spacing:0.3px}
+.onboard-header h2 span{color:var(--lime)}
+.onboard-header p{color:var(--text2);font-size:14px;margin-top:6px}
+.onboard-body{padding:24px 28px 28px}
+.form-step{display:none}
+.form-step.active{display:block}
+.step-indicator{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--border);color:var(--text3);transition:all 0.3s}
+.step-dot.done{background:var(--lime);border-color:var(--lime);color:#000}
+.step-dot.active{border-color:var(--lime);color:var(--lime)}
+.step-line{height:1px;flex:1;background:var(--border)}
+.step-line.done{background:var(--lime)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;letter-spacing:0.5px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+.form-group input,.form-group select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.15s}
+.form-group input:focus,.form-group select:focus{border-color:var(--lime)}
+.form-group select option{background:var(--bg3)}
+.div-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.div-card{background:var(--bg3);border:2px solid var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s}
+.div-card:hover,.div-card.selected{border-color:var(--lime);background:rgba(200,241,53,0.06)}
+.div-card-name{font-family:var(--font-head);font-size:16px;font-weight:800;margin-bottom:2px}
+.div-card-desc{font-size:11px;color:var(--text3)}
+.benchmark-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bench-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px}
+.bench-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;font-weight:700;margin-bottom:6px}
+.bench-input-wrap{display:flex;align-items:center;gap:6px}
+.bench-input{flex:1;background:transparent;border:none;color:var(--lime);font-family:var(--font-head);font-size:24px;font-weight:800;outline:none;width:100%}
+.bench-unit{font-size:12px;color:var(--text3);font-weight:600}
+.btn-primary{background:var(--lime);color:#000;border:none;padding:13px 24px;border-radius:9px;font-family:var(--font-head);font-size:16px;font-weight:800;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--lime2);transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:var(--text2);border:1px solid var(--border);padding:13px 24px;border-radius:9px;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.btn-secondary:hover{border-color:var(--text2);color:var(--text)}
+.btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
+
+/* GENERATING ANIMATION */
+.generating{text-align:center;padding:40px 20px}
+.gen-icon{width:64px;height:64px;background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:spin-glow 2s linear infinite}
+@keyframes spin-glow{0%{box-shadow:0 0 0 0 rgba(200,241,53,0.4)}50%{box-shadow:0 0 20px 8px rgba(200,241,53,0.1)}100%{box-shadow:0 0 0 0 rgba(200,241,53,0.4)}}
+.gen-title{font-family:var(--font-head);font-size:22px;font-weight:800;margin-bottom:8px}
+.gen-status{font-size:13px;color:var(--text3);margin-top:4px}
+.gen-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin:16px 0 4px}
+.gen-fill{height:100%;background:linear-gradient(90deg,var(--lime),var(--orange));border-radius:2px;animation:gen-progress 2s ease-in-out forwards}
+@keyframes gen-progress{from{width:0}to{width:100%}}
+
+/* PAGE SECTIONS */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-family:var(--font-head);font-size:18px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase}
+.section-title span{color:var(--lime)}
+
+/* SCREENS */
+.screen{display:none}
+.screen.active{display:block}
+
+/* NUTRITION DETAILS */
+.nutrition-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.macro-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.macro-card-val{font-family:var(--font-head);font-size:28px;font-weight:900}
+.macro-card-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:3px;font-weight:600}
+.macro-card.carbs .macro-card-val{color:#60a5fa}
+.macro-card.protein .macro-card-val{color:var(--lime)}
+.macro-card.fat .macro-card-val{color:var(--orange)}
+.macro-card.cals .macro-card-val{color:var(--text)}
+
+/* ANALYTICS */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+
+/* COMP SIM MODAL */
+.sim-modal{background:var(--bg2);border:1px solid rgba(200,241,53,0.3);border-radius:16px;width:600px;max-height:85vh;overflow-y:auto;position:relative}
+.sim-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--lime),var(--orange),var(--red))}
+.sim-header{padding:24px 24px 0;text-align:center}
+.sim-title{font-family:var(--font-head);font-size:36px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+.sim-title span{color:var(--lime)}
+.sim-subtitle{font-size:13px;color:var(--text3);margin-top:4px}
+.sim-body{padding:20px 24px 24px}
+.race-flow{display:flex;flex-direction:column;gap:6px}
+.race-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:var(--bg3);border:1px solid var(--border)}
+.race-item-num{font-family:var(--font-head);font-size:13px;font-weight:800;color:var(--text3);width:28px}
+.race-item-icon{font-size:16px;width:24px;text-align:center}
+.race-item-info{flex:1}
+.race-item-name{font-size:13px;font-weight:600}
+.race-item-detail{font-size:11px;color:var(--text3)}
+.race-item-target{font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--lime)}
+.race-item.run-segment{background:rgba(200,241,53,0.06);border-color:rgba(200,241,53,0.2)}
+.race-item.run-segment .race-item-num{color:var(--lime)}
+
+/* SCROLLABLE */
+.overflow-list{max-height:340px;overflow-y:auto}
+
+/* RESPONSIVE HELPERS */
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.mt-4{margin-top:4px}
+.mt-8{margin-top:8px}
+.mt-12{margin-top:12px}
+.mt-16{margin-top:16px}
+
+/* CLOSE BTN */
+.close-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:18px;transition:all 0.15s}
+.close-btn:hover{background:var(--bg4);color:var(--text)}
+
+/* TOOLTIP/TAG */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+.tag-lime{background:rgba(200,241,53,0.15);color:var(--lime);border:1px solid rgba(200,241,53,0.3)}
+.tag-orange{background:rgba(255,107,43,0.15);color:var(--orange);border:1px solid rgba(255,107,43,0.3)}
+.tag-blue{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3)}
+.tag-red{background:rgba(255,59,59,0.15);color:var(--red);border:1px solid rgba(255,59,59,0.3)}
+
+/* NOTIFICATIONS */
+.notif-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.notif-item:last-child{border-bottom:none}
+.notif-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.notif-text{font-size:13px;flex:1}
+.notif-time{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* LOADING BAR */
+.top-loader{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--lime),var(--orange));z-index:999;transform:scaleX(0);transform-origin:left;transition:transform 0.3s}
+
+/* ==========================================
+   MOBILE RESPONSIVE — 768px and below
+   ========================================== */
+@media (max-width: 768px) {
+
+  /* LAYOUT: Stack sidebar below as bottom nav */
+  .app { flex-direction: column; height: 100dvh; }
+
+  /* SIDEBAR → becomes a top header + bottom tab bar */
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 56px;
+    flex-shrink: 0;
+    order: 0;
+  }
+  .logo { padding: 0; border-bottom: none; }
+  .logo-text { font-size: 18px; }
+  .logo-sub { display: none; }
+
+  /* Hide full sidebar nav — replaced by bottom bar */
+  .nav, .sidebar-bottom { display: none; }
+
+  /* MAIN fills remaining height */
+  .main { flex: 1; overflow-y: auto; order: 1; min-height: 0; }
+
+  /* BOTTOM NAV BAR */
+  .mobile-nav {
+    width: 100%;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    flex-shrink: 0;
+    order: 2;
+    z-index: 10;
+  }
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text3);
+    font-size: 10px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .mobile-nav-item svg { width: 20px; height: 20px; }
+  .mobile-nav-item.active { color: var(--lime); }
+
+  /* TOP BAR */
+  .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+  .page-title { font-size: 20px; }
+  .week-badge { font-size: 10px; padding: 4px 10px; }
+  .phase-badge { display: none; }
+
+  /* CONTENT PADDING */
+  .content { padding: 16px; }
+
+  /* KILL ALL MULTI-COL GRIDS */
+  .grid-4, .grid-3, .grid-2, .grid-3-1 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .analytics-grid { grid-template-columns: 1fr; gap: 12px; }
+
+  /* STAT CARDS: 2-col on mobile */
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+
+  /* NUTRITION SUMMARY: 2×2 */
+  .nutrition-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* PERIODIZATION: full single column */
+  .period-grid { grid-template-columns: 1fr; }
+  .benchmark-grid { grid-template-columns: 1fr 1fr; }
+
+  /* ONBOARDING MODAL */
+  .onboard-modal {
+    width: calc(100vw - 24px);
+    max-height: 90dvh;
+    border-radius: 12px;
+  }
+  .onboard-header { padding: 20px 20px 0; }
+  .onboard-body { padding: 16px 20px 20px; }
+  .form-row { grid-template-columns: 1fr; gap: 10px; }
+  .div-grid { grid-template-columns: 1fr; gap: 8px; }
+
+  /* COMP SIM MODAL */
+  .sim-modal { width: calc(100vw - 24px); max-height: 88dvh; }
+
+  /* STAT VALUE — slightly smaller on mobile */
+  .stat-value { font-size: 30px; }
+
+  /* PREDICTED TIME */
+  .predicted-time { font-size: 48px; }
+
+  /* CHARTS */
+  .chart-wrap { height: 200px; }
+
+  /* WORKOUT HEADER */
+  .workout-name { font-size: 22px; }
+
+  /* STATION ITEMS */
+  .station-item { gap: 10px; padding: 12px; }
+
+  /* RACE PREDICTOR BREAKDOWN */
+  .predictor-breakdown { gap: 0; }
+
+  /* WEEK SCHEDULE items */
+  #weekSchedule > div { flex-wrap: wrap; gap: 8px; }
+
+  /* BENCH INPUT */
+  .bench-input { font-size: 20px; }
+
+  /* STREAK DAYS — fit 7 on small screen */
+  .streak-day { width: 32px; height: 32px; font-size: 9px; }
+
+  /* Scroll race flow properly */
+  .sim-body { padding: 14px 16px 20px; }
+  .race-flow { max-height: 55dvh; overflow-y: auto; }
+}
+
+/* Extra small phones (< 380px) */
+@media (max-width: 380px) {
+  .grid-4 { grid-template-columns: 1fr; }
+  .stat-value { font-size: 26px; }
+  .mobile-nav-item { padding: 4px 8px; font-size: 9px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP LOADING BAR -->
+<div class="top-loader" id="topLoader"></div>
+
+<!-- ONBOARDING OVERLAY -->
+<div class="overlay" id="onboardOverlay">
+<div class="onboard-modal">
+  <div class="onboard-header">
+    <h2><span>IronRox</span> Elite</h2>
+    <p>Professional HYROX Training Portal — Build your race-ready plan in 90 seconds.</p>
+  </div>
+  <div class="onboard-body">
+    <!-- Step indicators -->
+    <div class="step-indicator" id="stepIndicator">
+      <div class="step-dot active" id="sdot1">1</div>
+      <div class="step-line" id="sline1"></div>
+      <div class="step-dot" id="sdot2">2</div>
+      <div class="step-line" id="sline2"></div>
+      <div class="step-dot" id="sdot3">3</div>
+      <div class="step-line" id="sline3"></div>
+      <div class="step-dot" id="sdot4">4</div>
+    </div>
+
+    <!-- STEP 1: Athlete Profile -->
+    <div class="form-step active" id="step1">
+      <div style="font-family:var(--font-head);font-size:20px;font-weight:800;margin-bottom:4px">Athlete Profile</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:18px">Tell us who you are</div>
+      <div class="form-row">
+        <div class="form-group"><label>First Name</label><input type="text" placeholder="Alex" id="fname" value="Alex"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" placeholder="Mercer" id="lname" value="Mercer"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Age</label><input type="number" placeholder="28" id="age" value="28"></div>
+        <div class="form-group"><label>Gender</label>
+          <select id="gender"><option>Male</option><option>Female</option><option>Non-binary</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Weight (kg)</label><input type="number" placeholder="75" id="weight" value="75"></div>
+        <div class="form-group"><label>Height (cm)</label><input type="number" placeholder="178" id="height" value="178"></div>
+      </div>
+      <div class="form-group"><label>Plan Duration</label>
+        <select id="duration">
+          <option>4 Weeks (1 Month)</option>
+          <option selected>8 Weeks (2 Months)</option>
+          <option>12 Weeks (3 Months)</option>
+          <option>24 Weeks (6 Months)</option>
+          <option>52 Weeks (1 Year)</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <span></span>
+        <button class="btn-primary" onclick="goStep(2)">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Division -->
+    <div class="form-step" id="step2">
+      <div style="font-family:var(--font-head);font-size:20px;font-weight:800;margin-bottom:4px">Select Division</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:18px">Choose your competition category</div>
+      <div class="div-grid">
+        <div class="div-card" onclick="selectDiv(this,'OPEN')"><div class="div-card-name">OPEN</div><div class="div-card-desc">All levels welcome</div></div>
+        <div class="div-card selected" onclick="selectDiv(this,'PRO')"><div class="div-card-name">PRO</div><div class="div-card-desc">Elite performance</div></div>
+        <div class="div-card" onclick="selectDiv(this,'DOUBLES')"><div class="div-card-name">DOUBLES</div><div class="div-card-desc">Partner format</div></div>
+      </div>
+      <div style="margin-top:16px">
+      <div class="form-group"><label>Race Goal</label>
+        <select id="goal">
+          <option>Finish / Complete the race</option>
+          <option>Sub 1:30</option>
+          <option selected>Sub 1:15</option>
+          <option>Sub 1:00</option>
+          <option>Podium Finish</option>
+        </select>
+      </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(1)">Back</button>
+        <button class="btn-primary" onclick="goStep(3)">Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Benchmarks -->
+    <div class="form-step" id="step3">
+      <div style="font-family:var(--font-head);font-size:20px;font-weight:800;margin-bottom:4px">Performance Benchmarks</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:18px">Enter your current best efforts — honest numbers only.</div>
+      <div class="benchmark-grid">
+        <div class="bench-item"><div class="bench-label">5K Run PB</div><div class="bench-input-wrap"><input class="bench-input" value="22:30" id="b5k"><span class="bench-unit">mm:ss</span></div></div>
+        <div class="bench-item"><div class="bench-label">1km Run</div><div class="bench-input-wrap"><input class="bench-input" value="4:12" id="b1k"><span class="bench-unit">mm:ss</span></div></div>
+        <div class="bench-item"><div class="bench-label">SkiErg 1km</div><div class="bench-input-wrap"><input class="bench-input" value="3:45" id="bski"><span class="bench-unit">mm:ss</span></div></div>
+        <div class="bench-item"><div class="bench-label">Row 500m</div><div class="bench-input-wrap"><input class="bench-input" value="1:48" id="brow"><span class="bench-unit">mm:ss</span></div></div>
+        <div class="bench-item"><div class="bench-label">Sled Push</div><div class="bench-input-wrap"><input class="bench-input" value="102" id="bsled"><span class="bench-unit">kg 1RM</span></div></div>
+        <div class="bench-item"><div class="bench-label">Wall Ball Max</div><div class="bench-input-wrap"><input class="bench-input" value="48" id="bwb"><span class="bench-unit">reps</span></div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(2)">Back</button>
+        <button class="btn-primary" onclick="goStep(4)">Generate Plan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Generating -->
+    <div class="form-step" id="step4">
+      <div class="generating">
+        <div class="gen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2" style="width:28px;height:28px"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <div class="gen-title">Building Your <span style="color:var(--lime)">Elite Plan</span></div>
+        <div class="gen-bar"><div class="gen-fill" id="genFill"></div></div>
+        <div class="gen-status" id="genStatus">Analysing performance benchmarks...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- COMP SIM MODAL -->
+<div class="overlay" id="simOverlay" style="display:none">
+<div class="sim-modal">
+  <button class="close-btn" onclick="closeModal('simOverlay')">×</button>
+  <div class="sim-header">
+    <div class="sim-title"><span>COMP</span> SIMULATION</div>
+    <div class="sim-subtitle">Saturday Race Day Simulation — Full HYROX Flow</div>
+  </div>
+  <div class="sim-body">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-family:var(--font-head);font-size:28px;font-weight:900;color:var(--lime)">8km</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:3px">Total Run</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-family:var(--font-head);font-size:28px;font-weight:900;color:var(--orange)">8</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:3px">Stations</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-family:var(--font-head);font-size:28px;font-weight:900;color:#60a5fa">~70</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:3px">Minutes (Target)</div>
+      </div>
+    </div>
+    <div class="race-flow">
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run</div><div class="race-item-detail">Pace: 4:15/km target</div></div><div class="race-item-target">4:15</div></div>
+      <div class="race-item"><div class="race-item-num">01</div><div class="race-item-icon">⛷️</div><div class="race-item-info"><div class="race-item-name">SkiErg</div><div class="race-item-detail">1000m · 100m/min pace</div></div><div class="race-item-target">1,000m</div></div>
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run</div><div class="race-item-detail">Maintain pace</div></div><div class="race-item-target">4:20</div></div>
+      <div class="race-item"><div class="race-item-num">02</div><div class="race-item-icon">🛷</div><div class="race-item-info"><div class="race-item-name">Sled Push</div><div class="race-item-detail">50m · 102kg (Pro M)</div></div><div class="race-item-target">50m</div></div>
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run</div><div class="race-item-detail">Recovery breathing</div></div><div class="race-item-target">4:30</div></div>
+      <div class="race-item"><div class="race-item-num">03</div><div class="race-item-icon">🛷</div><div class="race-item-info"><div class="race-item-name">Sled Pull</div><div class="race-item-detail">50m · 78kg (Pro M)</div></div><div class="race-item-target">50m</div></div>
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run</div><div class="race-item-detail">Hold threshold</div></div><div class="race-item-target">4:25</div></div>
+      <div class="race-item"><div class="race-item-num">04</div><div class="race-item-icon">🦺</div><div class="race-item-info"><div class="race-item-name">Burpee Broad Jumps</div><div class="race-item-detail">80m · 8m per jump target</div></div><div class="race-item-target">80m</div></div>
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run</div><div class="race-item-detail">Push pace</div></div><div class="race-item-target">4:20</div></div>
+      <div class="race-item"><div class="race-item-num">05</div><div class="race-item-icon">🚣</div><div class="race-item-info"><div class="race-item-name">Row</div><div class="race-item-detail">1000m · 1:52/500m split</div></div><div class="race-item-target">1,000m</div></div>
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run</div><div class="race-item-detail">Recover on run</div></div><div class="race-item-target">4:35</div></div>
+      <div class="race-item"><div class="race-item-num">06</div><div class="race-item-icon">💼</div><div class="race-item-info"><div class="race-item-name">Farmers Carry</div><div class="race-item-detail">200m · 2×24kg</div></div><div class="race-item-target">200m</div></div>
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run</div><div class="race-item-detail">Penultimate push</div></div><div class="race-item-target">4:25</div></div>
+      <div class="race-item"><div class="race-item-num">07</div><div class="race-item-icon">🚶</div><div class="race-item-info"><div class="race-item-name">Sandbag Lunges</div><div class="race-item-detail">100m · 20kg</div></div><div class="race-item-target">100m</div></div>
+      <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run (FINAL)</div><div class="race-item-detail">All out effort</div></div><div class="race-item-target">4:10</div></div>
+      <div class="race-item"><div class="race-item-num">08</div><div class="race-item-icon">🏀</div><div class="race-item-info"><div class="race-item-name">Wall Balls</div><div class="race-item-detail">100 reps · 6kg · 9m target</div></div><div class="race-item-target">100 reps</div></div>
+    </div>
+    <button class="comp-sim-btn" style="margin-top:20px" onclick="closeModal('simOverlay')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 3l14 9-14 9V3z"/></svg>
+      START SIMULATION TIMER
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div><div class="logo-text">Iron<span>Rox</span></div><div class="logo-sub">Elite Portal</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">
+        <div class="nav-label">Training</div>
+        <button class="nav-item active" onclick="switchScreen('dashboard',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Command Center
+        </button>
+        <button class="nav-item" onclick="switchScreen('workout',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M6 12h12"/></svg>
+          Today's Workout
+        </button>
+        <button class="nav-item" onclick="switchScreen('plan',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Training Plan
+          <span class="nav-badge">W5</span>
+        </button>
+        <button class="nav-item" onclick="openModal('simOverlay')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg>
+          Comp Simulation
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Performance</div>
+        <button class="nav-item" onclick="switchScreen('nutrition',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          Nutrition Engine
+        </button>
+        <button class="nav-item" onclick="switchScreen('analytics',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+          Analytics & PRs
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Account</div>
+        <button class="nav-item" onclick="switchScreen('settings',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="athlete-card">
+        <div class="athlete-avatar" id="sideAvatar">AM</div>
+        <div><div class="athlete-name" id="sideAthleteName">Alex Mercer</div><div class="athlete-div">PRO Division · Week 5/8</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Command <span>Center</span></div>
+      <div class="topbar-right">
+        <span class="week-badge">Week 5 of 8</span>
+        <span class="phase-badge phase-strength">Strength-Endurance Phase</span>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)"><div class="status-dot"></div> Live</div>
+      </div>
+    </div>
+
+    <!-- SCREENS -->
+    <div class="content">
+
+      <!-- DASHBOARD SCREEN -->
+      <div class="screen active" id="screen-dashboard">
+
+        <!-- Red Zone Alert (if missed) -->
+        <div class="red-zone" style="margin-bottom:16px;display:none" id="redZoneAlert">
+          <div class="red-zone-dot"></div>
+          <div class="red-zone-text"><strong>RED ZONE:</strong> You've missed 2 sessions this week. Intensity has been auto-adjusted for the next 48hrs. Get back on track.</div>
+        </div>
+
+        <!-- STAT CARDS ROW -->
+        <div class="grid-4">
+          <div class="stat-card green">
+            <div class="stat-glow lime"></div>
+            <div class="stat-label">Predicted Race Time</div>
+            <div class="stat-value lime">1:12</div>
+            <div class="stat-sub"><span class="up">▲</span> 3 min faster than start</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Sessions This Week</div>
+            <div class="stat-value" style="color:var(--text)">4/6</div>
+            <div class="stat-sub" style="color:var(--text3)">2 sessions remaining</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-glow orange"></div>
+            <div class="stat-label">No-Cheat Streak</div>
+            <div class="stat-value orange">11</div>
+            <div class="stat-sub"><span class="up">🔥</span> days clean</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Training Load</div>
+            <div class="stat-value" style="color:var(--blue)">847</div>
+            <div class="stat-sub" style="color:var(--text3)">TSS this week</div>
+          </div>
+        </div>
+
+        <!-- MIDDLE ROW: Today + Nutrition -->
+        <div class="grid-3-1">
+          <!-- Today's Workout Card -->
+          <div>
+            <div class="workout-header">
+              <div class="workout-type">Today · Tuesday · Week 5</div>
+              <div class="workout-name">Threshold Run + Sled Complex</div>
+              <div class="workout-meta">
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg> 75 min</span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> High Intensity</span>
+                <span class="tag tag-orange">Strength-Endurance</span>
+              </div>
+            </div>
+            <div class="station-list">
+              <div class="station-run">
+                <div class="run-icon">RUN</div>
+                <div style="flex:1"><div style="font-size:13px;font-weight:600">Warm-up Run</div><div style="font-size:11px;color:var(--text3)">10 min easy Z2 pace</div></div>
+                <div style="font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--lime)">10 min</div>
+              </div>
+              <div class="station-item done" id="si1" onclick="toggleStation(1)">
+                <div class="station-num">01</div>
+                <div class="station-info"><div class="station-name">SkiErg</div><div class="station-detail">3 × 500m · 90% effort · 90s rest</div></div>
+                <div class="station-target"><div class="station-target-val">3:30</div><div class="station-target-unit">target /500m</div></div>
+                <div class="station-check" id="sc1">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:11px;height:11px"><polyline points="20,6 9,17 4,12"/></svg>
+                </div>
+              </div>
+              <div class="station-run">
+                <div class="run-icon">RUN</div>
+                <div style="flex:1"><div style="font-size:13px;font-weight:600">Transition Run</div><div style="font-size:11px;color:var(--text3)">1km @ 4:30/km</div></div>
+                <div style="font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--lime)">4:30</div>
+              </div>
+              <div class="station-item" id="si2" onclick="toggleStation(2)">
+                <div class="station-num">02</div>
+                <div class="station-info"><div class="station-name">Sled Push</div><div class="station-detail">4 × 25m · 80% 1RM · 2 min rest</div></div>
+                <div class="station-target"><div class="station-target-val">82kg</div><div class="station-target-unit">working load</div></div>
+                <div class="station-check" id="sc2"></div>
+              </div>
+              <div class="station-item" id="si3" onclick="toggleStation(3)">
+                <div class="station-num">03</div>
+                <div class="station-info"><div class="station-name">Wall Balls</div><div class="station-detail">3 × 25 reps · 6kg · unbroken</div></div>
+                <div class="station-target"><div class="station-target-val">25</div><div class="station-target-unit">reps/set</div></div>
+                <div class="station-check" id="sc3"></div>
+              </div>
+              <div class="station-item" id="si4" onclick="toggleStation(4)">
+                <div class="station-num">04</div>
+                <div class="station-info"><div class="station-name">Burpee Broad Jumps</div><div class="station-detail">3 × 16m · focus technique</div></div>
+                <div class="station-target"><div class="station-target-val">16m</div><div class="station-target-unit">per set</div></div>
+                <div class="station-check" id="sc4"></div>
+              </div>
+              <div class="station-run">
+                <div class="run-icon">RUN</div>
+                <div style="flex:1"><div style="font-size:13px;font-weight:600">Finisher Run</div><div style="font-size:11px;color:var(--text3)">2km threshold @ 4:10/km</div></div>
+                <div style="font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--lime)">4:10</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column -->
+          <div>
+            <!-- Nutrition Summary -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header">
+                <div class="card-title">Today's Nutrition</div>
+                <span class="tag tag-orange">High Carb Day</span>
+              </div>
+              <div class="macro-bar-wrap">
+                <div class="macro-row"><span class="macro-name">Carbs</span><span class="macro-vals">340 / 420g</span></div>
+                <div class="bar-track"><div class="bar-fill bar-carb" style="width:81%"></div></div>
+              </div>
+              <div class="macro-bar-wrap">
+                <div class="macro-row"><span class="macro-name">Protein</span><span class="macro-vals">148 / 165g</span></div>
+                <div class="bar-track"><div class="bar-fill bar-protein" style="width:90%"></div></div>
+              </div>
+              <div class="macro-bar-wrap">
+                <div class="macro-row"><span class="macro-name">Fat</span><span class="macro-vals">52 / 68g</span></div>
+                <div class="bar-track"><div class="bar-fill bar-fat" style="width:76%"></div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+                <div style="font-size:12px;color:var(--text3)">Total Calories</div>
+                <div style="font-family:var(--font-head);font-size:22px;font-weight:800">2,380<span style="font-size:14px;color:var(--text3)"> / 2,940</span></div>
+              </div>
+            </div>
+
+            <!-- Streak Card -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header">
+                <div class="card-title">No-Cheat Streak</div>
+                <div class="card-action">View Log</div>
+              </div>
+              <div class="streak-display">
+                <div><div class="streak-num">11</div><div class="streak-label">Day Streak</div></div>
+                <div style="flex:1">
+                  <div class="streak-days">
+                    <div class="streak-day done">M</div>
+                    <div class="streak-day done">T</div>
+                    <div class="streak-day done">W</div>
+                    <div class="streak-day done">T</div>
+                    <div class="streak-day today">F</div>
+                    <div class="streak-day future">S</div>
+                    <div class="streak-day future">S</div>
+                  </div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:8px">This week's adherence · 5/7 days</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comp Sim Saturday -->
+            <div class="card" style="border-color:rgba(200,241,53,0.2);background:rgba(200,241,53,0.03)">
+              <div class="card-header">
+                <div class="card-title" style="color:var(--lime)">Saturday · Comp Sim</div>
+                <span class="tag tag-lime">In 4 Days</span>
+              </div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5">Full race simulation · 8 stations + 8km total run · Target: sub 1:12</div>
+              <button class="comp-sim-btn" onclick="openModal('simOverlay')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><polygon points="5,3 19,12 5,21"/></svg>
+                VIEW RACE FLOW
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTTOM ROW -->
+        <div class="grid-3">
+          <!-- Volume Heatmap -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Training Volume</div>
+              <div class="card-action">8 Weeks</div>
+            </div>
+            <div class="heatmap-labels">
+              <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px" id="heatmapGrid"></div>
+          </div>
+
+          <!-- Race Predictor -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Race Predictor</div>
+              <span class="tag tag-lime">AI Engine</span>
+            </div>
+            <div class="predictor-display">
+              <div class="predicted-time">1:12:34</div>
+              <div class="predicted-label">Predicted Finish Time</div>
+            </div>
+            <div class="predictor-breakdown">
+              <div class="pred-item"><div class="pred-val" style="color:#60a5fa">34:10</div><div class="pred-lab">8km Run</div></div>
+              <div class="pred-item"><div class="pred-val" style="color:var(--lime)">38:24</div><div class="pred-lab">Stations</div></div>
+              <div class="pred-item"><div class="pred-val" style="color:var(--orange)">-8min</div><div class="pred-lab">Gain vs W1</div></div>
+            </div>
+          </div>
+
+          <!-- Periodization -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Plan Progress</div>
+              <div class="card-action">View Full</div>
+            </div>
+            <div class="period-grid">
+              <div class="period-card">
+                <div class="period-month">Month 1</div>
+                <div class="period-phase" style="color:#60a5fa">Foundation</div>
+                <div class="period-desc">Aerobic base & movement patterns</div>
+                <div class="period-weeks">
+                  <div class="week-dot done"></div>
+                  <div class="week-dot done"></div>
+                  <div class="week-dot done"></div>
+                  <div class="week-dot done"></div>
+                </div>
+              </div>
+              <div class="period-card active">
+                <div class="period-month">Month 2</div>
+                <div class="period-phase" style="color:var(--orange)">Strength</div>
+                <div class="period-desc">Intensity & station efficiency</div>
+                <div class="period-weeks">
+                  <div class="week-dot done"></div>
+                  <div class="week-dot current"></div>
+                  <div class="week-dot"></div>
+                  <div class="week-dot"></div>
+                </div>
+              </div>
+              <div class="period-card">
+                <div class="period-month">Month 3</div>
+                <div class="period-phase" style="color:var(--lime)">Peak</div>
+                <div class="period-desc">Race simulation & taper</div>
+                <div class="period-weeks">
+                  <div class="week-dot"></div>
+                  <div class="week-dot"></div>
+                  <div class="week-dot"></div>
+                  <div class="week-dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- WORKOUT SCREEN -->
+      <div class="screen" id="screen-workout">
+        <div class="grid-2">
+          <div>
+            <div class="workout-header">
+              <div class="workout-type">Full Session · Week 5 · Day 3</div>
+              <div class="workout-name">HYROX Station Complex</div>
+              <div class="workout-meta">
+                <span>90 min total</span>
+                <span class="tag tag-orange">Station Efficiency</span>
+              </div>
+            </div>
+            <div class="card" style="margin-top:0">
+              <div class="card-header">
+                <div class="card-title">Session Logger</div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="tag tag-lime" id="sessionProgress">1/8 done</span>
+                  <button class="card-action" onclick="markFailed()">Mark Failed ↗</button>
+                </div>
+              </div>
+              <div class="station-list" id="fullStationList">
+                <!-- Stations generated by JS -->
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header"><div class="card-title">Pace Calculator</div></div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px"><span style="color:var(--text2)">Target 1km Run Pace</span><span style="font-family:var(--font-head);font-size:18px;font-weight:800;color:var(--lime)" id="paceDisp">4:15/km</span></div>
+                  <input type="range" min="300" max="600" value="255" id="paceSlider" oninput="updatePace(this.value)" style="width:100%">
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px"><span>3:00</span><span>6:00</span></div>
+                </div>
+                <div style="background:var(--bg3);border-radius:8px;padding:12px;border:1px solid var(--border)">
+                  <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">8 Runs Breakdown</div>
+                  <div style="display:flex;flex-direction:column;gap:4px" id="runBreakdown"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Station Targets</div></div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">SkiErg 1000m</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">3:30</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Sled Push 50m</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">60s</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Sled Pull 50m</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">55s</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Burpee Broad Jumps 80m</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">2:20</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Row 1000m</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">3:44</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Farmers Carry 200m</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">1:50</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">Sandbag Lunges 100m</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">3:10</span></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px"><span style="color:var(--text2)">Wall Balls 100 reps</span><span style="font-family:var(--font-head);font-weight:800;color:var(--lime)">5:30</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRAINING PLAN SCREEN -->
+      <div class="screen" id="screen-plan">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">12-Week Periodization</div><span class="tag tag-lime">PRO Division · Sub 1:15 Goal</span></div>
+          <div class="period-grid" style="grid-template-columns:repeat(3,1fr)">
+            <div class="period-card" style="border-color:rgba(59,130,246,0.3)">
+              <div style="position:absolute;top:0;left:0;right:0;height:2px;background:#3b82f6"></div>
+              <div class="period-month">Weeks 1–4</div>
+              <div class="period-phase" style="color:#60a5fa;font-size:20px">Foundation & Aerobic Capacity</div>
+              <div class="period-desc" style="margin-top:6px">Build aerobic engine. VO2max development. Movement pattern drilling. Low-intensity station work.</div>
+              <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">
+                <span class="tag tag-blue">Z2 Running</span>
+                <span class="tag tag-blue">Technique Work</span>
+                <span class="tag tag-blue">Base Strength</span>
+              </div>
+              <div class="period-weeks" style="margin-top:10px">
+                <div class="week-dot done" title="Week 1"></div>
+                <div class="week-dot done" title="Week 2"></div>
+                <div class="week-dot done" title="Week 3"></div>
+                <div class="week-dot done" title="Week 4"></div>
+              </div>
+            </div>
+            <div class="period-card active">
+              <div class="period-month">Weeks 5–8</div>
+              <div class="period-phase" style="color:var(--orange);font-size:20px">Strength-Endurance & Efficiency</div>
+              <div class="period-desc" style="margin-top:6px">Threshold training. Station-specific strength. Race-pace intervals. Back-to-back training blocks.</div>
+              <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">
+                <span class="tag tag-orange">Threshold Runs</span>
+                <span class="tag tag-orange">Complex Sets</span>
+                <span class="tag tag-orange">Race-Pace Work</span>
+              </div>
+              <div class="period-weeks" style="margin-top:10px">
+                <div class="week-dot done"></div>
+                <div class="week-dot current"></div>
+                <div class="week-dot"></div>
+                <div class="week-dot"></div>
+              </div>
+            </div>
+            <div class="period-card">
+              <div class="period-month">Weeks 9–12</div>
+              <div class="period-phase" style="color:var(--lime);font-size:20px">Competition Peak & Simulation</div>
+              <div class="period-desc" style="margin-top:6px">Race-specific preparation. Full comp simulations every Saturday. Taper week. Race-day protocol.</div>
+              <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">
+                <span class="tag tag-lime">Comp Sims</span>
+                <span class="tag tag-lime">Taper</span>
+                <span class="tag tag-lime">Peak Performance</span>
+              </div>
+              <div class="period-weeks" style="margin-top:10px">
+                <div class="week-dot"></div>
+                <div class="week-dot"></div>
+                <div class="week-dot"></div>
+                <div class="week-dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Week-by-week table -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Week 5 Schedule (Current)</div><div class="card-action">All Weeks ↗</div></div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="weekSchedule"></div>
+        </div>
+      </div>
+
+      <!-- NUTRITION SCREEN -->
+      <div class="screen" id="screen-nutrition">
+        <div class="nutrition-summary">
+          <div class="macro-card cals"><div class="macro-card-val">2,940</div><div class="macro-card-label">Calories</div></div>
+          <div class="macro-card carbs"><div class="macro-card-val">420g</div><div class="macro-card-label">Carbs</div></div>
+          <div class="macro-card protein"><div class="macro-card-val">165g</div><div class="macro-card-label">Protein</div></div>
+          <div class="macro-card fat"><div class="macro-card-val">68g</div><div class="macro-card-label">Fat</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Today's Meal Plan</div><span class="tag tag-orange">High Carb Training Day</span></div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px">Breakfast · 7:00 AM</div>
+              <div class="meal-item">
+                <div class="meal-time">7:00</div>
+                <div class="meal-name">Overnight oats + banana + honey</div>
+                <div class="meal-cals">540</div>
+                <div class="meal-check done" id="m1"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:10px;height:10px"><polyline points="20,6 9,17 4,12"/></svg></div>
+              </div>
+              <div class="meal-item">
+                <div class="meal-time">7:30</div>
+                <div class="meal-name">3 whole eggs + 2 egg whites scrambled</div>
+                <div class="meal-cals">280</div>
+                <div class="meal-check done" id="m2"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:10px;height:10px"><polyline points="20,6 9,17 4,12"/></svg></div>
+              </div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px">Pre-Workout · 12:00 PM</div>
+              <div class="meal-item">
+                <div class="meal-time">12:00</div>
+                <div class="meal-name">Rice cakes + peanut butter + dates</div>
+                <div class="meal-cals">320</div>
+                <div class="meal-check done" id="m3"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:10px;height:10px"><polyline points="20,6 9,17 4,12"/></svg></div>
+              </div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px">Post-Workout · 3:30 PM</div>
+              <div class="meal-item">
+                <div class="meal-time">3:30</div>
+                <div class="meal-name">Whey protein shake + fruit + milk</div>
+                <div class="meal-cals">420</div>
+                <div class="meal-check" id="m4" onclick="toggleMeal('m4')"></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px">Dinner · 7:00 PM</div>
+              <div class="meal-item">
+                <div class="meal-time">7:00</div>
+                <div class="meal-name">Chicken breast 180g + white rice 200g + veg</div>
+                <div class="meal-cals">680</div>
+                <div class="meal-check" id="m5" onclick="toggleMeal('m5')"></div>
+              </div>
+              <div class="meal-item">
+                <div class="meal-time">9:00</div>
+                <div class="meal-name">Greek yogurt 200g + granola + berries</div>
+                <div class="meal-cals">340</div>
+                <div class="meal-check" id="m6" onclick="toggleMeal('m6')"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header"><div class="card-title">Day Type Guide</div></div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:8px;padding:12px">
+                  <div style="font-family:var(--font-head);font-size:14px;font-weight:800;color:var(--lime);margin-bottom:4px">SIMULATION DAYS</div>
+                  <div style="font-size:12px;color:var(--text2)">High Carb · 2,940 kcal · Carbs: 420g · Prot: 165g · Fat: 68g</div>
+                </div>
+                <div style="background:rgba(255,107,43,0.06);border:1px solid rgba(255,107,43,0.2);border-radius:8px;padding:12px">
+                  <div style="font-family:var(--font-head);font-size:14px;font-weight:800;color:var(--orange);margin-bottom:4px">TRAINING DAYS</div>
+                  <div style="font-size:12px;color:var(--text2)">Moderate Carb · 2,580 kcal · Carbs: 310g · Prot: 165g · Fat: 85g</div>
+                </div>
+                <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px">
+                  <div style="font-family:var(--font-head);font-size:14px;font-weight:800;color:#60a5fa;margin-bottom:4px">RECOVERY DAYS</div>
+                  <div style="font-size:12px;color:var(--text2)">High Protein · 2,180 kcal · Carbs: 220g · Prot: 185g · Fat: 78g</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Hydration & Supplements</div></div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#60a5fa;flex-shrink:0"></div>
+                  <div style="flex:1;font-size:13px">Water target</div>
+                  <div style="font-family:var(--font-head);font-size:16px;font-weight:800;color:#60a5fa">3.5L</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--lime);flex-shrink:0"></div>
+                  <div style="flex:1;font-size:13px">Creatine Monohydrate</div>
+                  <div style="font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--lime)">5g</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>
+                  <div style="flex:1;font-size:13px">Electrolytes (intra-workout)</div>
+                  <div style="font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--orange)">1 sachet</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+                  <div style="width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0"></div>
+                  <div style="flex:1;font-size:13px">Magnesium Glycinate (PM)</div>
+                  <div style="font-family:var(--font-head);font-size:16px;font-weight:800;color:var(--text2)">400mg</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS SCREEN -->
+      <div class="screen" id="screen-analytics">
+        <div class="grid-4" style="margin-bottom:20px">
+          <div class="stat-card"><div class="stat-label">1km Run PB</div><div class="stat-value lime">4:02</div><div class="stat-sub"><span class="up">▲</span> -10s since Week 1</div></div>
+          <div class="stat-card"><div class="stat-label">SkiErg 1km</div><div class="stat-value orange">3:28</div><div class="stat-sub"><span class="up">▲</span> -17s since Week 1</div></div>
+          <div class="stat-card"><div class="stat-label">Sled Push 1RM</div><div class="stat-value" style="color:var(--blue)">112kg</div><div class="stat-sub"><span class="up">▲</span> +10kg since Week 1</div></div>
+          <div class="stat-card"><div class="stat-label">Wall Ball Max</div><div class="stat-value" style="color:var(--text)">62</div><div class="stat-sub"><span class="up">▲</span> +14 reps since Week 1</div></div>
+        </div>
+        <div class="analytics-grid">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Race Time Progression</div></div>
+            <div class="chart-wrap"><canvas id="chartRaceTime" role="img" aria-label="Race time prediction improvement over 8 weeks">Race time improvement chart</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Weekly Training Volume (TSS)</div></div>
+            <div class="chart-wrap"><canvas id="chartVolume" role="img" aria-label="Weekly training stress score over 8 weeks">Training volume chart</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Station PR Tracker</div></div>
+            <div class="chart-wrap" style="height:200px"><canvas id="chartStation" role="img" aria-label="Station performance radar">Station radar chart</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">1km Run Pace Trend</div></div>
+            <div class="chart-wrap"><canvas id="chartRun" role="img" aria-label="1km run pace improvement trend">Run pace trend chart</canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS SCREEN -->
+      <div class="screen" id="screen-settings">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Athlete Profile</div><button class="card-action" onclick="resetApp()">Reset & Re-onboard ↗</button></div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="form-group"><label>Full Name</label><input type="text" value="Alex Mercer" id="setName" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font-body);width:100%;outline:none"></div>
+              <div class="form-group"><label>Division</label>
+                <select style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font-body);outline:none">
+                  <option>PRO</option><option>OPEN</option><option>DOUBLES</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Plan Duration</label>
+                <select style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:var(--font-body);outline:none">
+                  <option>8 Weeks (2 Months)</option>
+                  <option>12 Weeks (3 Months)</option>
+                  <option>24 Weeks (6 Months)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Notifications</div></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                <div><div style="font-size:14px;font-weight:500">Workout Reminder</div><div style="font-size:12px;color:var(--text3)">Daily at 6:30 AM</div></div>
+                <div style="width:40px;height:22px;background:var(--lime);border-radius:11px;position:relative;cursor:pointer"><div style="width:18px;height:18px;background:#000;border-radius:50%;position:absolute;right:2px;top:2px"></div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                <div><div style="font-size:14px;font-weight:500">Red Zone Alerts</div><div style="font-size:12px;color:var(--text3)">When off-track</div></div>
+                <div style="width:40px;height:22px;background:var(--lime);border-radius:11px;position:relative;cursor:pointer"><div style="width:18px;height:18px;background:#000;border-radius:50%;position:absolute;right:2px;top:2px"></div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+                <div><div style="font-size:14px;font-weight:500">Saturday Sim Reminder</div><div style="font-size:12px;color:var(--text3)">Friday at 8:00 PM</div></div>
+                <div style="width:40px;height:22px;background:var(--lime);border-radius:11px;position:relative;cursor:pointer"><div style="width:18px;height:18px;background:#000;border-radius:50%;position:absolute;right:2px;top:2px"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav" id="mobileNav" style="display:none">
+    <button class="mobile-nav-item active" id="mn-dashboard" onclick="mobileNav('dashboard','mn-dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Home
+    </button>
+    <button class="mobile-nav-item" id="mn-workout" onclick="mobileNav('workout','mn-workout')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5v14M18 5v14M6 12h12"/></svg>
+      Workout
+    </button>
+    <button class="mobile-nav-item" id="mn-nutrition" onclick="mobileNav('nutrition','mn-nutrition')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+      Nutrition
+    </button>
+    <button class="mobile-nav-item" id="mn-analytics" onclick="mobileNav('analytics','mn-analytics')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+      Stats
+    </button>
+    <button class="mobile-nav-item" id="mn-plan" onclick="mobileNav('plan','mn-plan')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Plan
+    </button>
+  </nav>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ==========================================
+// APP STATE
+// ==========================================
+let currentDiv = 'PRO';
+let currentStep = 1;
+let completedStations = new Set([1]);
+let genMessages = [
+  'Analysing performance benchmarks...',
+  'Calculating aerobic threshold zones...',
+  'Generating periodization blocks...',
+  'Building station-specific progressions...',
+  'Computing nutrition macro targets...',
+  'Calibrating race predictor model...',
+  'Plan generated. Welcome, athlete.'
+];
+
+// ==========================================
+// ONBOARDING
+// ==========================================
+function goStep(n) {
+  document.getElementById(`step${currentStep}`).classList.remove('active');
+  document.getElementById(`sdot${currentStep}`).classList.remove('active');
+  document.getElementById(`sdot${currentStep}`).classList.add('done');
+  document.getElementById(`sdot${currentStep}`).innerHTML = '✓';
+  if (currentStep < n) {
+    document.getElementById(`sline${currentStep}`).classList.add('done');
+  }
+  currentStep = n;
+  document.getElementById(`step${n}`).classList.add('active');
+  document.getElementById(`sdot${n}`).classList.add('active');
+
+  if (n === 4) {
+    startGeneration();
+  }
+}
+
+function selectDiv(el, div) {
+  document.querySelectorAll('.div-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentDiv = div;
+}
+
+function startGeneration() {
+  let i = 0;
+  const statusEl = document.getElementById('genStatus');
+  const interval = setInterval(() => {
+    if (i < genMessages.length) {
+      statusEl.textContent = genMessages[i];
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(launchApp, 500);
+    }
+  }, 280);
+}
+
+function launchApp() {
+  const fname = document.getElementById('fname').value || 'Alex';
+  const lname = document.getElementById('lname').value || 'Mercer';
+  const initials = (fname[0] + lname[0]).toUpperCase();
+  document.getElementById('sideAvatar').textContent = initials;
+  document.getElementById('sideAthleteName').textContent = `${fname} ${lname}`;
+  document.getElementById('onboardOverlay').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  // Show mobile bottom nav on small screens
+  if (window.innerWidth <= 768) {
+    document.getElementById('mobileNav').style.display = 'flex';
+  }
+  initApp();
+}
+
+// Mobile-specific nav switcher
+function mobileNav(screen, btnId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(`screen-${screen}`).classList.add('active');
+  document.getElementById(btnId).classList.add('active');
+  const titles = {
+    dashboard: 'Command <span style="color:var(--lime)">Center</span>',
+    workout: 'Today\'s <span style="color:var(--lime)">Workout</span>',
+    plan: 'Training <span style="color:var(--lime)">Plan</span>',
+    nutrition: 'Nutrition <span style="color:var(--lime)">Engine</span>',
+    analytics: 'Analytics <span style="color:var(--lime)">&amp; PRs</span>',
+  };
+  document.getElementById('pageTitle').innerHTML = titles[screen] || screen;
+  if (screen === 'analytics') setTimeout(initCharts, 100);
+  // Scroll content area to top on screen switch
+  document.querySelector('.main').scrollTo(0, 0);
+}
+
+// ==========================================
+// NAV
+// ==========================================
+function switchScreen(name, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  el.classList.add('active');
+  const titles = {
+    dashboard: 'Command <span style="color:var(--lime)">Center</span>',
+    workout: 'Today\'s <span style="color:var(--lime)">Workout</span>',
+    plan: 'Training <span style="color:var(--lime)">Plan</span>',
+    nutrition: 'Nutrition <span style="color:var(--lime)">Engine</span>',
+    analytics: 'Analytics <span style="color:var(--lime)">&amp; PRs</span>',
+    settings: 'Account <span style="color:var(--lime)">Settings</span>'
+  };
+  document.getElementById('pageTitle').innerHTML = titles[name] || name;
+  if (name === 'analytics') setTimeout(initCharts, 100);
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ==========================================
+// INIT APP
+// ==========================================
+function initApp() {
+  buildHeatmap();
+  buildFullStationList();
+  buildWeekSchedule();
+  updatePace(255);
+  buildRunBreakdown(255);
+}
+
+// ==========================================
+// STATION TOGGLE
+// ==========================================
+function toggleStation(n) {
+  const item = document.getElementById(`si${n}`);
+  const check = document.getElementById(`sc${n}`);
+  if (completedStations.has(n)) {
+    completedStations.delete(n);
+    item.classList.remove('done');
+    check.innerHTML = '';
+  } else {
+    completedStations.add(n);
+    item.classList.add('done');
+    check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:11px;height:11px"><polyline points="20,6 9,17 4,12"/></svg>';
+  }
+}
+
+// ==========================================
+// HEATMAP
+// ==========================================
+function buildHeatmap() {
+  const grid = document.getElementById('heatmapGrid');
+  if (!grid) return;
+  const volumes = [
+    [2,3,1,3,2,4,0],
+    [2,4,2,4,3,5,1],
+    [3,4,3,4,3,5,0],
+    [3,5,3,5,4,5,1],
+    [3,4,3,4,3,0,0],
+  ];
+  grid.innerHTML = '';
+  volumes.forEach((week, wi) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:4px';
+    week.forEach(v => {
+      const d = document.createElement('div');
+      d.className = `heatmap-day v${v}`;
+      d.style.flex = '1';
+      row.appendChild(d);
+    });
+    grid.appendChild(row);
+  });
+}
+
+// ==========================================
+// FULL STATION LIST
+// ==========================================
+const stations = [
+  {name:'SkiErg', detail:'1000m @ 3:30 pace', target:'3:30', unit:'target'},
+  {name:'Sled Push', detail:'50m · 102kg', target:'60s', unit:'target'},
+  {name:'Sled Pull', detail:'50m · 78kg', target:'55s', unit:'target'},
+  {name:'Burpee Broad Jumps', detail:'80m · 8m/jump', target:'2:20', unit:'target'},
+  {name:'Rowing', detail:'1000m @ 1:52/500m', target:'3:44', unit:'target'},
+  {name:'Farmers Carry', detail:'200m · 2×24kg', target:'1:50', unit:'target'},
+  {name:'Sandbag Lunges', detail:'100m · 20kg', target:'3:10', unit:'target'},
+  {name:'Wall Balls', detail:'100 reps · 6kg · 9m', target:'5:30', unit:'target'},
+];
+
+let fullDone = new Set([1]);
+function buildFullStationList() {
+  const list = document.getElementById('fullStationList');
+  if (!list) return;
+  list.innerHTML = '';
+  stations.forEach((s, i) => {
+    const n = i + 1;
+    const done = fullDone.has(n);
+    const el = document.createElement('div');
+    el.className = `station-item${done ? ' done' : ''}`;
+    el.id = `fsi${n}`;
+    el.onclick = () => toggleFullStation(n);
+    el.innerHTML = `
+      <div class="station-num" id="fsn${n}">${n}</div>
+      <div class="station-info">
+        <div class="station-name">${s.name}</div>
+        <div class="station-detail">${s.detail}</div>
+      </div>
+      <div class="station-target">
+        <div class="station-target-val">${s.target}</div>
+        <div class="station-target-unit">${s.unit}</div>
+      </div>
+      <div class="station-check" id="fsc${n}">${done ? '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:11px;height:11px"><polyline points="20,6 9,17 4,12"/></svg>' : ''}</div>
+    `;
+    list.appendChild(el);
+  });
+  updateSessionProgress();
+}
+
+function toggleFullStation(n) {
+  if (fullDone.has(n)) {
+    fullDone.delete(n);
+    document.getElementById(`fsi${n}`).classList.remove('done');
+    document.getElementById(`fsn${n}`).style.background = '';
+    document.getElementById(`fsn${n}`).style.color = '';
+    document.getElementById(`fsc${n}`).innerHTML = '';
+  } else {
+    fullDone.add(n);
+    document.getElementById(`fsi${n}`).classList.add('done');
+    document.getElementById(`fsn${n}`).style.background = 'var(--lime)';
+    document.getElementById(`fsn${n}`).style.color = '#000';
+    document.getElementById(`fsc${n}`).innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:11px;height:11px"><polyline points="20,6 9,17 4,12"/></svg>';
+  }
+  updateSessionProgress();
+}
+
+function updateSessionProgress() {
+  const prog = document.getElementById('sessionProgress');
+  if (prog) prog.textContent = `${fullDone.size}/8 done`;
+}
+
+function markFailed() {
+  document.getElementById('redZoneAlert').style.display = 'flex';
+  switchScreen('dashboard', document.querySelector('.nav-item'));
+}
+
+// ==========================================
+// WEEK SCHEDULE
+// ==========================================
+const weekDays = [
+  {day:'Monday', type:'Training', session:'Zone 2 Run + SkiErg Intervals', duration:'60 min', intensity:'Medium', color:'orange'},
+  {day:'Tuesday', type:'Training', session:'Sled Complex + Wall Balls', duration:'75 min', intensity:'High', color:'orange'},
+  {day:'Wednesday', type:'Recovery', session:'Active Recovery + Mobility', duration:'40 min', intensity:'Low', color:'blue'},
+  {day:'Thursday', type:'Training', session:'Threshold Run + Burpee Drills', duration:'70 min', intensity:'High', color:'orange'},
+  {day:'Friday', type:'Training', session:'Farmers Carry + Lunge Complex + Row', duration:'65 min', intensity:'Medium-High', color:'orange'},
+  {day:'Saturday', type:'Simulation', session:'COMP SIMULATION – Full Race Flow', duration:'90 min', intensity:'Max', color:'lime'},
+  {day:'Sunday', type:'Rest', session:'Rest / Optional Yoga / Foam Roll', duration:'–', intensity:'–', color:'gray'},
+];
+
+function buildWeekSchedule() {
+  const cont = document.getElementById('weekSchedule');
+  if (!cont) return;
+  cont.innerHTML = '';
+  weekDays.forEach(d => {
+    const el = document.createElement('div');
+    el.style.cssText = `display:flex;align-items:center;gap:14px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;${d.color === 'lime' ? 'border-color:rgba(200,241,53,0.3);background:rgba(200,241,53,0.04)' : ''}`;
+    const tagColors = {orange:'tag-orange',lime:'tag-lime',blue:'tag-blue',gray:''};
+    const tagMap = {orange:'Training',lime:'Comp Sim',blue:'Recovery',gray:'Rest'};
+    el.innerHTML = `
+      <div style="width:80px;font-family:var(--font-head);font-size:15px;font-weight:800;flex-shrink:0">${d.day}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">${d.session}</div>
+        <div style="font-size:11px;color:var(--text3)">${d.duration !== '–' ? d.duration + ' · ' : ''}${d.intensity !== '–' ? d.intensity + ' intensity' : 'Rest day'}</div>
+      </div>
+      ${d.color !== 'gray' ? `<span class="tag tag-${d.color}">${tagMap[d.color]}</span>` : '<span style="font-size:12px;color:var(--text3)">Rest</span>'}
+    `;
+    cont.appendChild(el);
+  });
+}
+
+// ==========================================
+// PACE CALCULATOR
+// ==========================================
+function updatePace(val) {
+  const totalSecs = Math.round(parseInt(val));
+  const mins = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
+  document.getElementById('paceDisp').textContent = `${mins}:${secs.toString().padStart(2,'0')}/km`;
+  buildRunBreakdown(totalSecs);
+}
+
+function buildRunBreakdown(baseSecs) {
+  const cont = document.getElementById('runBreakdown');
+  if (!cont) return;
+  const fatigue = [0, 0.01, 0.02, 0.04, 0.05, 0.07, 0.08, 0.03];
+  cont.innerHTML = '';
+  fatigue.forEach((f, i) => {
+    const secs = Math.round(baseSecs * (1 + f));
+    const mins = Math.floor(secs / 60);
+    const s = secs % 60;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;justify-content:space-between;font-size:12px';
+    div.innerHTML = `<span style="color:var(--text3)">Run ${i+1}</span><span style="font-family:var(--font-head);font-weight:700;color:var(--lime)">${mins}:${s.toString().padStart(2,'0')}</span>`;
+    cont.appendChild(div);
+  });
+}
+
+// ==========================================
+// MEAL TOGGLE
+// ==========================================
+function toggleMeal(id) {
+  const el = document.getElementById(id);
+  if (el.classList.contains('done')) {
+    el.classList.remove('done');
+    el.innerHTML = '';
+  } else {
+    el.classList.add('done');
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:10px;height:10px"><polyline points="20,6 9,17 4,12"/></svg>';
+  }
+}
+
+// ==========================================
+// CHARTS
+// ==========================================
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+
+  // Race Time Chart
+  new Chart(document.getElementById('chartRaceTime'), {
+    type: 'line',
+    data: {
+      labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+      datasets: [{
+        label: 'Predicted Race Time (min)',
+        data: [80, 78, 76, 75, 72, null, null, null],
+        borderColor: '#c8f135',
+        backgroundColor: 'rgba(200,241,53,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#c8f135',
+        pointRadius: 4,
+      },{
+        label: 'Target',
+        data: [80, 78, 76, 74, 72, 70, 68, 67],
+        borderColor: '#ff6b2b',
+        borderDash: [4,4],
+        tension: 0.4,
+        pointRadius: 0,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#5a5a60', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#5a5a60', font: { size: 11 } }, reverse: true,
+          min: 60, max: 85 }
+      }
+    }
+  });
+
+  // Volume Chart
+  new Chart(document.getElementById('chartVolume'), {
+    type: 'bar',
+    data: {
+      labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+      datasets: [{
+        label: 'TSS',
+        data: [520, 580, 610, 640, 847, null, null, null],
+        backgroundColor: (ctx) => {
+          const i = ctx.dataIndex;
+          return i === 4 ? '#c8f135' : 'rgba(200,241,53,0.35)';
+        },
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#5a5a60', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#5a5a60', font: { size: 11 } }, min: 0 }
+      }
+    }
+  });
+
+  // Station Radar
+  new Chart(document.getElementById('chartStation'), {
+    type: 'radar',
+    data: {
+      labels: ['SkiErg','Sled Push','Sled Pull','Burpees','Row','Farmers','Lunges','Wall Ball'],
+      datasets: [{
+        label: 'Current',
+        data: [78, 72, 75, 65, 82, 80, 70, 68],
+        borderColor: '#c8f135',
+        backgroundColor: 'rgba(200,241,53,0.12)',
+        pointBackgroundColor: '#c8f135',
+      },{
+        label: 'Week 1',
+        data: [60, 58, 62, 50, 65, 68, 55, 54],
+        borderColor: 'rgba(255,107,43,0.6)',
+        backgroundColor: 'rgba(255,107,43,0.06)',
+        pointBackgroundColor: '#ff6b2b',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          grid: { color: 'rgba(255,255,255,0.08)' },
+          ticks: { display: false },
+          pointLabels: { color: '#5a5a60', font: { size: 10 } },
+          min: 0, max: 100,
+        }
+      }
+    }
+  });
+
+  // Run Pace Chart
+  new Chart(document.getElementById('chartRun'), {
+    type: 'line',
+    data: {
+      labels: ['W1','W2','W3','W4','W5'],
+      datasets: [{
+        label: '1km Pace (s)',
+        data: [272, 268, 262, 258, 242],
+        borderColor: '#60a5fa',
+        backgroundColor: 'rgba(96,165,250,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#60a5fa',
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#5a5a60', font: { size: 11 } } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: {
+            color: '#5a5a60', font: { size: 11 },
+            callback: v => { const m = Math.floor(v/60); const s = v%60; return `${m}:${s.toString().padStart(2,'0')}`; }
+          },
+          reverse: true, min: 230, max: 290
+        }
+      }
+    }
+  });
+}
+
+// ==========================================
+// RESET
+// ==========================================
+function resetApp() {
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('onboardOverlay').style.display = 'flex';
+  currentStep = 1;
+  chartsInit = false;
+  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step1').classList.add('active');
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.className = 'step-dot';
+    d.textContent = i+1;
+  });
+  document.getElementById('sdot1').classList.add('active');
+  document.querySelectorAll('.step-line').forEach(l => l.classList.remove('done'));
+}
+</script>
+</body>
+</html>

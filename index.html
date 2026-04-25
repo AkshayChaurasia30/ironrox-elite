@@ -490,6 +490,330 @@ svg.ring{transform:rotate(-90deg)}
   .stat-value { font-size: 26px; }
   .mobile-nav-item { padding: 4px 8px; font-size: 9px; }
 }
+
+/* =============================================
+   LIVE SESSION ENGINE — Full Workout Timer
+   ============================================= */
+
+/* Full-screen session overlay */
+#sessionOverlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: #04040500;
+  display: none; align-items: stretch; justify-content: stretch;
+  flex-direction: column;
+}
+#sessionOverlay.active { display: flex; }
+
+/* Animated gradient background that shifts by phase */
+.session-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(200,241,53,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 50%, rgba(255,107,43,0.04) 0%, transparent 60%),
+              #06060a;
+  transition: background 1s ease;
+}
+.session-bg.rest-mode {
+  background: radial-gradient(ellipse at 50% 30%, rgba(59,130,246,0.12) 0%, transparent 60%),
+              #040408;
+}
+.session-bg.done-mode {
+  background: radial-gradient(ellipse at 50% 50%, rgba(200,241,53,0.15) 0%, transparent 60%),
+              #04060a;
+}
+
+/* Session layout */
+.session-wrap {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; height: 100dvh;
+  max-width: 540px; margin: 0 auto; width: 100%;
+  padding: 0 20px;
+}
+
+/* TOP BAR */
+.session-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 0 14px;
+  flex-shrink: 0;
+}
+.session-elapsed {
+  font-family: var(--font-head); font-size: 22px; font-weight: 800;
+  color: var(--text3); letter-spacing: 1px;
+}
+.session-elapsed span { color: var(--text); }
+.session-close-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); font-size: 18px;
+  transition: all 0.2s; font-family: sans-serif; flex-shrink: 0;
+}
+.session-close-btn:hover { background: rgba(255,59,59,0.15); color: var(--red); }
+
+/* PROGRESS PIPELINE */
+.session-pipeline {
+  display: flex; gap: 3px; height: 3px; margin-bottom: 20px; flex-shrink: 0;
+}
+.pipe-seg {
+  flex: 1; background: var(--bg4); border-radius: 2px;
+  transition: background 0.4s ease;
+}
+.pipe-seg.done { background: var(--lime); }
+.pipe-seg.active { background: rgba(200,241,53,0.5); animation: pipe-pulse 1.5s infinite; }
+.pipe-seg.rest-active { background: rgba(59,130,246,0.6); }
+@keyframes pipe-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* STEP LABEL */
+.session-step-label {
+  text-align: center; font-size: 11px; color: var(--text3);
+  letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+  margin-bottom: 8px; flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+/* EXERCISE NAME */
+.session-exercise-name {
+  text-align: center;
+  font-family: var(--font-head); font-size: clamp(36px, 9vw, 54px);
+  font-weight: 900; letter-spacing: 0.5px; line-height: 1;
+  margin-bottom: 6px; flex-shrink: 0;
+  transition: all 0.4s ease;
+}
+.session-exercise-name.run-phase { color: var(--lime); }
+.session-exercise-name.station-phase { color: var(--text); }
+.session-exercise-name.rest-phase { color: #60a5fa; }
+
+/* EXERCISE DETAIL */
+.session-exercise-detail {
+  text-align: center; font-size: 14px; color: var(--text3);
+  margin-bottom: 28px; flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+/* THE BIG TIMER */
+.session-timer-wrap {
+  display: flex; align-items: center; justify-content: center;
+  flex: 1; flex-direction: column; min-height: 0;
+}
+.timer-ring-container {
+  position: relative; width: min(300px, 72vw); height: min(300px, 72vw);
+  flex-shrink: 0;
+}
+.timer-ring-svg {
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+}
+.timer-ring-bg {
+  fill: none; stroke: var(--bg4); stroke-width: 8;
+}
+.timer-ring-fill {
+  fill: none; stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear, stroke 0.5s ease;
+}
+.timer-ring-fill.run { stroke: var(--lime); }
+.timer-ring-fill.station { stroke: var(--orange); }
+.timer-ring-fill.rest { stroke: #60a5fa; }
+
+/* Glow ring animation for active */
+.timer-glow-ring {
+  position: absolute; inset: -8px; border-radius: 50%;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.5s;
+}
+.timer-glow-ring.active { opacity: 1; }
+.timer-glow-ring.run { box-shadow: 0 0 40px 10px rgba(200,241,53,0.15); }
+.timer-glow-ring.station { box-shadow: 0 0 40px 10px rgba(255,107,43,0.15); }
+.timer-glow-ring.rest { box-shadow: 0 0 40px 10px rgba(96,165,250,0.15); }
+
+/* Center content inside ring */
+.timer-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+}
+.timer-time {
+  font-family: var(--font-head); font-size: clamp(52px, 14vw, 80px);
+  font-weight: 900; letter-spacing: -2px; line-height: 1;
+  transition: color 0.4s;
+}
+.timer-time.run { color: var(--lime); }
+.timer-time.station { color: var(--orange); }
+.timer-time.rest { color: #60a5fa; }
+.timer-mode-label {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  font-weight: 700; color: var(--text3);
+}
+.timer-target-label {
+  font-size: 12px; color: var(--text3); margin-top: 2px;
+}
+
+/* Pulse animation on running */
+@keyframes timer-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
+.timer-ring-container.ticking { animation: timer-pulse 1s infinite; }
+
+/* BOTTOM CONTROLS */
+.session-controls {
+  flex-shrink: 0; padding: 20px 0 max(24px, env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+/* BIG DONE BUTTON */
+.btn-done {
+  width: 100%; padding: 20px;
+  background: var(--lime); color: #000;
+  border: none; border-radius: 16px;
+  font-family: var(--font-head); font-size: 22px; font-weight: 900;
+  letter-spacing: 1px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn-done::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+}
+.btn-done:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(200,241,53,0.3); }
+.btn-done:active { transform: scale(0.98); }
+.btn-done.rest-btn {
+  background: transparent; color: #60a5fa;
+  border: 2px solid #60a5fa;
+}
+.btn-done.rest-btn::after { display: none; }
+
+/* SECONDARY CONTROLS ROW */
+.session-secondary {
+  display: flex; gap: 8px;
+}
+.btn-sec {
+  flex: 1; padding: 12px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text2);
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.btn-sec:hover { background: var(--bg4); color: var(--text); }
+
+/* NEXT UP PREVIEW */
+.next-up-preview {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.next-up-label {
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text3); font-weight: 700; flex-shrink: 0;
+}
+.next-up-icon { font-size: 18px; flex-shrink: 0; }
+.next-up-info { flex: 1; }
+.next-up-name { font-size: 13px; font-weight: 600; }
+.next-up-detail { font-size: 11px; color: var(--text3); }
+.next-up-time {
+  font-family: var(--font-head); font-size: 16px; font-weight: 800;
+  color: var(--text3);
+}
+
+/* REST COUNTDOWN specific styling */
+.rest-header {
+  text-align: center; flex-shrink: 0; margin-bottom: 8px;
+}
+.rest-title {
+  font-family: var(--font-head); font-size: 28px; font-weight: 900;
+  color: #60a5fa; letter-spacing: 1px;
+}
+.rest-sub {
+  font-size: 12px; color: var(--text3); margin-top: 4px; text-transform: uppercase;
+  letter-spacing: 1px; font-weight: 600;
+}
+
+/* COMPLETED BURST animation */
+@keyframes burst-in {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.completion-burst {
+  text-align: center; padding: 32px 20px;
+  animation: burst-in 0.5s ease forwards;
+}
+.burst-icon {
+  font-size: 72px; line-height: 1; margin-bottom: 16px;
+  filter: drop-shadow(0 0 20px rgba(200,241,53,0.5));
+}
+.burst-title {
+  font-family: var(--font-head); font-size: 44px; font-weight: 900;
+  color: var(--lime); letter-spacing: 1px;
+}
+.burst-time {
+  font-family: var(--font-head); font-size: 28px; font-weight: 800;
+  color: var(--text2); margin-top: 8px;
+}
+
+/* SESSION COMPLETE SCREEN */
+.session-complete {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; flex: 1; text-align: center; gap: 16px;
+  padding: 20px;
+}
+.complete-icon { font-size: 80px; animation: burst-in 0.6s ease; }
+.complete-title {
+  font-family: var(--font-head); font-size: 48px; font-weight: 900;
+  color: var(--lime); letter-spacing: 1px;
+  animation: burst-in 0.7s ease;
+}
+.complete-subtitle { font-size: 15px; color: var(--text2); }
+.complete-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  width: 100%; margin: 8px 0;
+}
+.complete-stat {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 10px; text-align: center;
+}
+.complete-stat-val {
+  font-family: var(--font-head); font-size: 26px; font-weight: 900;
+  color: var(--lime);
+}
+.complete-stat-label {
+  font-size: 10px; color: var(--text3); text-transform: uppercase;
+  letter-spacing: 1px; margin-top: 3px; font-weight: 600;
+}
+.btn-complete {
+  width: 100%; padding: 18px;
+  background: var(--lime); color: #000; border: none; border-radius: 14px;
+  font-family: var(--font-head); font-size: 20px; font-weight: 900;
+  cursor: pointer; letter-spacing: 0.5px;
+}
+
+/* LAUNCH SESSION button on dashboard */
+.launch-session-btn {
+  background: linear-gradient(135deg, var(--lime), #a0d010);
+  color: #000; border: none; border-radius: 12px;
+  padding: 16px 20px; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-head); font-size: 18px; font-weight: 900;
+  letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.launch-session-btn::before {
+  content: 'SATURDAY'; position: absolute; top: -2px; right: 12px;
+  font-size: 9px; letter-spacing: 2px; color: rgba(0,0,0,0.5); font-weight: 800;
+}
+.launch-session-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(200,241,53,0.35);
+}
+.launch-session-btn svg { width: 20px; height: 20px; }
+
+/* Flicker animation for timer when rest ending */
+@keyframes warn-flash { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.timer-warn { animation: warn-flash 0.4s infinite; }
+
+/* Mobile adjustments for session overlay */
+@media (max-width: 768px) {
+  .session-wrap { padding: 0 16px; }
+  .timer-ring-container { width: min(260px, 76vw); height: min(260px, 76vw); }
+}
 </style>
 </head>
 <body>
@@ -650,12 +974,160 @@ svg.ring{transform:rotate(-90deg)}
       <div class="race-item run-segment"><div class="race-item-num">RUN</div><div class="race-item-icon">🏃</div><div class="race-item-info"><div class="race-item-name">1km Run (FINAL)</div><div class="race-item-detail">All out effort</div></div><div class="race-item-target">4:10</div></div>
       <div class="race-item"><div class="race-item-num">08</div><div class="race-item-icon">🏀</div><div class="race-item-info"><div class="race-item-name">Wall Balls</div><div class="race-item-detail">100 reps · 6kg · 9m target</div></div><div class="race-item-target">100 reps</div></div>
     </div>
-    <button class="comp-sim-btn" style="margin-top:20px" onclick="closeModal('simOverlay')">
+    <button class="comp-sim-btn" style="margin-top:20px" onclick="closeModal('simOverlay');startSession()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 3l14 9-14 9V3z"/></svg>
-      START SIMULATION TIMER
+      START LIVE SESSION TIMER
     </button>
   </div>
 </div>
+</div>
+
+<!-- =============================================
+     LIVE SESSION ENGINE OVERLAY
+     ============================================= -->
+<div id="sessionOverlay">
+  <div class="session-bg" id="sessionBg"></div>
+  <div class="session-wrap">
+
+    <!-- TOP BAR: total elapsed + close -->
+    <div class="session-topbar">
+      <div class="session-elapsed">Total: <span id="totalElapsed">00:00</span></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="sessionLiveIndicator" style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)">
+          <div class="status-dot"></div> LIVE
+        </div>
+        <button class="session-close-btn" onclick="confirmEndSession()">✕</button>
+      </div>
+    </div>
+
+    <!-- PROGRESS PIPELINE (16 segments = 8 runs + 8 stations) -->
+    <div class="session-pipeline" id="sessionPipeline"></div>
+
+    <!-- MAIN CONTENT AREA — switches between phases -->
+    <div id="sessionContent" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden">
+
+      <!-- PHASE: ACTIVE EXERCISE / RUN -->
+      <div id="phaseActive" style="flex:1;display:flex;flex-direction:column">
+        <div class="session-step-label" id="stepLabel">STEP 1 OF 16</div>
+        <div class="session-exercise-name run-phase" id="exerciseName">1km RUN</div>
+        <div class="session-exercise-detail" id="exerciseDetail">Target pace: 4:15/km · Stay relaxed</div>
+
+        <div class="session-timer-wrap">
+          <div class="timer-ring-container ticking" id="timerRingContainer">
+            <div class="timer-glow-ring run active" id="timerGlowRing"></div>
+            <svg class="timer-ring-svg" viewBox="0 0 200 200">
+              <circle class="timer-ring-bg" cx="100" cy="100" r="88"/>
+              <circle class="timer-ring-fill run" id="timerRingFill"
+                cx="100" cy="100" r="88"
+                stroke-dasharray="553"
+                stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-center">
+              <div class="timer-time run" id="timerDisplay">0:00</div>
+              <div class="timer-mode-label" id="timerModeLabel">COUNTING UP</div>
+              <div class="timer-target-label" id="timerTargetLabel">Target: 4:15</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEXT UP PREVIEW -->
+        <div class="next-up-preview" id="nextUpPreview" style="margin-bottom:12px">
+          <div class="next-up-label">NEXT</div>
+          <div class="next-up-icon" id="nextIcon">⛷️</div>
+          <div class="next-up-info">
+            <div class="next-up-name" id="nextName">SkiErg</div>
+            <div class="next-up-detail" id="nextDetail">1000m · 90s rest first</div>
+          </div>
+          <div class="next-up-time" id="nextTime">~3:30</div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="session-controls">
+          <button class="btn-done" id="doneBtn" onclick="completeCurrent()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:22px;height:22px"><polyline points="20,6 9,17 4,12"/></svg>
+            DONE — NEXT STATION
+          </button>
+          <div class="session-secondary">
+            <button class="btn-sec" onclick="pauseTimer()" id="pauseBtn">⏸ Pause</button>
+            <button class="btn-sec" onclick="skipRest()">⏭ Skip Rest</button>
+            <button class="btn-sec" onclick="restartCurrent()">↺ Restart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHASE: REST COUNTDOWN -->
+      <div id="phaseRest" style="flex:1;display:flex;flex-direction:column;display:none">
+        <div class="rest-header">
+          <div class="rest-title" id="restTitle">90s REST</div>
+          <div class="rest-sub" id="restSubtitle">Catch your breath · Next: SkiErg 1000m</div>
+        </div>
+
+        <div class="session-timer-wrap">
+          <div class="timer-ring-container" id="restRingContainer">
+            <div class="timer-glow-ring rest active"></div>
+            <svg class="timer-ring-svg" viewBox="0 0 200 200">
+              <circle class="timer-ring-bg" cx="100" cy="100" r="88"/>
+              <circle class="timer-ring-fill rest" id="restRingFill"
+                cx="100" cy="100" r="88"
+                stroke-dasharray="553"
+                stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-center">
+              <div class="timer-time rest" id="restDisplay">1:30</div>
+              <div class="timer-mode-label">REST</div>
+              <div class="timer-target-label" id="restBreatheCue">Breathe · Recover</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="next-up-preview" id="restNextPreview" style="margin-bottom:12px">
+          <div class="next-up-label">UP NEXT</div>
+          <div class="next-up-icon" id="restNextIcon">⛷️</div>
+          <div class="next-up-info">
+            <div class="next-up-name" id="restNextName">SkiErg</div>
+            <div class="next-up-detail" id="restNextDetail">1000m — target 3:30</div>
+          </div>
+        </div>
+
+        <div class="session-controls">
+          <button class="btn-done rest-btn" onclick="skipRest()">
+            Skip Rest — Start Now
+          </button>
+          <div class="session-secondary">
+            <button class="btn-sec" onclick="addTime(30)">+30s Rest</button>
+            <button class="btn-sec" onclick="addTime(60)">+60s Rest</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHASE: SESSION COMPLETE -->
+      <div id="phaseComplete" style="display:none;flex:1;flex-direction:column">
+        <div class="session-complete">
+          <div class="complete-icon">🏆</div>
+          <div class="complete-title">SESSION COMPLETE!</div>
+          <div class="complete-subtitle" id="completeSubtitle">Saturday COMP Simulation · Full HYROX Flow</div>
+          <div class="complete-stats">
+            <div class="complete-stat">
+              <div class="complete-stat-val" id="finalTime">0:00</div>
+              <div class="complete-stat-label">Total Time</div>
+            </div>
+            <div class="complete-stat">
+              <div class="complete-stat-val">16</div>
+              <div class="complete-stat-label">Segments</div>
+            </div>
+            <div class="complete-stat">
+              <div class="complete-stat-val" id="finalPR" style="color:var(--orange)">+8min</div>
+              <div class="complete-stat-label">vs Last Sim</div>
+            </div>
+          </div>
+          <button class="btn-complete" onclick="endSession()">
+            ✓ SAVE & FINISH
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <!-- MAIN APP -->
@@ -879,12 +1351,15 @@ svg.ring{transform:rotate(-90deg)}
             <div class="card" style="border-color:rgba(200,241,53,0.2);background:rgba(200,241,53,0.03)">
               <div class="card-header">
                 <div class="card-title" style="color:var(--lime)">Saturday · Comp Sim</div>
-                <span class="tag tag-lime">In 4 Days</span>
+                <span class="tag tag-lime" id="saturdayBadge">TOMORROW</span>
               </div>
               <div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5">Full race simulation · 8 stations + 8km total run · Target: sub 1:12</div>
-              <button class="comp-sim-btn" onclick="openModal('simOverlay')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px"><polygon points="5,3 19,12 5,21"/></svg>
-                VIEW RACE FLOW
+              <button class="launch-session-btn" onclick="startSession()" style="margin-bottom:8px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:20px;height:20px"><path d="M5 3l14 9-14 9V3z"/></svg>
+                START SESSION NOW
+              </button>
+              <button class="comp-sim-btn" style="background:transparent;border:1px solid rgba(200,241,53,0.3);color:var(--lime);font-size:13px;padding:10px" onclick="openModal('simOverlay')">
+                View Race Flow
               </button>
             </div>
           </div>
@@ -1760,6 +2235,782 @@ function resetApp() {
   document.getElementById('sdot1').classList.add('active');
   document.querySelectorAll('.step-line').forEach(l => l.classList.remove('done'));
 }
+
+// =================================================================
+//  LIVE SESSION ENGINE — v2.0
+//  Full HYROX race simulation with timers, auto-rest, animations
+// =================================================================
+
+// ---- SESSION DATA -----------------------------------------------
+// Each segment: { type:'run'|'station'|'rest', name, emoji, detail,
+//                 targetSecs (for run/rest), restAfterSecs }
+const RACE_SEGMENTS = [
+  { type:'run',     name:'1km RUN',            emoji:'🏃', detail:'Pace: 4:15/km · Stay tall, breathe steady', targetSecs: 255, restAfterSecs: 0 },
+  { type:'station', name:'SkiErg',             emoji:'⛷️', detail:'1000m · Drive with arms, hinge at hips',    targetSecs: 0,   restAfterSecs: 90 },
+  { type:'run',     name:'1km RUN',            emoji:'🏃', detail:'Maintain pace · 4:20/km target',            targetSecs: 260, restAfterSecs: 0 },
+  { type:'station', name:'Sled Push',          emoji:'🛷', detail:'50m · Low hips, short fast steps · 102kg', targetSecs: 0,   restAfterSecs: 90 },
+  { type:'run',     name:'1km RUN',            emoji:'🏃', detail:'Recovery breathing · 4:30/km',              targetSecs: 270, restAfterSecs: 0 },
+  { type:'station', name:'Sled Pull',          emoji:'🔗', detail:'50m · Lean back, pull through hips · 78kg',targetSecs: 0,   restAfterSecs: 90 },
+  { type:'run',     name:'1km RUN',            emoji:'🏃', detail:'Hold threshold · 4:25/km',                  targetSecs: 265, restAfterSecs: 0 },
+  { type:'station', name:'Burpee Broad Jumps', emoji:'🦺', detail:'80m · Explode forward · aim 8m per jump',  targetSecs: 0,   restAfterSecs: 90 },
+  { type:'run',     name:'1km RUN',            emoji:'🏃', detail:'Push pace now · 4:20/km',                   targetSecs: 260, restAfterSecs: 0 },
+  { type:'station', name:'Row',                emoji:'🚣', detail:'1000m · 1:52/500m split · legs then lean', targetSecs: 0,   restAfterSecs: 90 },
+  { type:'run',     name:'1km RUN',            emoji:'🏃', detail:'Recover on run · 4:35/km',                  targetSecs: 275, restAfterSecs: 0 },
+  { type:'station', name:'Farmers Carry',      emoji:'💼', detail:'200m · 2×24kg · stay upright, grip hard',  targetSecs: 0,   restAfterSecs: 90 },
+  { type:'run',     name:'1km RUN',            emoji:'🏃', detail:'Penultimate push · 4:25/km',                targetSecs: 265, restAfterSecs: 0 },
+  { type:'station', name:'Sandbag Lunges',     emoji:'🎒', detail:'100m · 20kg · full knee drop each rep',    targetSecs: 0,   restAfterSecs: 90 },
+  { type:'run',     name:'FINAL 1km RUN',      emoji:'🏃‍♂️', detail:'ALL OUT · Leave nothing on the track',    targetSecs: 250, restAfterSecs: 0 },
+  { type:'station', name:'Wall Balls',         emoji:'🏀', detail:'100 reps · 6kg · 9m target · keep moving', targetSecs: 0,   restAfterSecs: 0 },
+];
+
+// ---- STATE ------------------------------------------------------
+let sessionActive   = false;
+let currentSegIdx   = 0;      // index into RACE_SEGMENTS
+let inRest          = false;
+let paused          = false;
+
+let segElapsed      = 0;      // seconds elapsed in current segment
+let restRemaining   = 0;      // seconds left in rest
+let totalElapsedSec = 0;      // session total elapsed
+
+let mainInterval    = null;   // setInterval handle
+let segmentTimes    = [];     // record actual time for each segment
+
+const CIRC          = 2 * Math.PI * 88; // SVG ring circumference
+
+// ---- VIBRATION helper -------------------------------------------
+function vibe(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// ---- START SESSION ----------------------------------------------
+function startSession() {
+  // Reset state
+  currentSegIdx   = 0;
+  inRest          = false;
+  paused          = false;
+  segElapsed      = 0;
+  restRemaining   = 0;
+  totalElapsedSec = 0;
+  segmentTimes    = [];
+
+  sessionActive = true;
+  document.getElementById('sessionOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  buildPipeline();
+  renderSegment(0);
+  startTick();
+  switchSessionPhase('active');
+}
+
+// ---- BUILD PIPELINE DOTS ----------------------------------------
+function buildPipeline() {
+  const pipe = document.getElementById('sessionPipeline');
+  pipe.innerHTML = '';
+  RACE_SEGMENTS.forEach((_, i) => {
+    const seg = document.createElement('div');
+    seg.className = 'pipe-seg';
+    seg.id = `pipe${i}`;
+    pipe.appendChild(seg);
+  });
+  document.getElementById(`pipe0`).classList.add('active');
+}
+
+function updatePipeline(idx) {
+  RACE_SEGMENTS.forEach((_, i) => {
+    const el = document.getElementById(`pipe${i}`);
+    if (!el) return;
+    el.className = 'pipe-seg';
+    if (i < idx) el.classList.add('done');
+    else if (i === idx) el.classList.add(inRest ? 'rest-active' : 'active');
+  });
+}
+
+// ---- RENDER CURRENT SEGMENT ------------------------------------
+function renderSegment(idx) {
+  const seg = RACE_SEGMENTS[idx];
+  const isRun = seg.type === 'run';
+  const bg = document.getElementById('sessionBg');
+
+  // Background
+  bg.className = `session-bg${isRun ? '' : ''}`;
+
+  // Labels
+  document.getElementById('stepLabel').textContent =
+    `STEP ${idx + 1} OF ${RACE_SEGMENTS.length}`;
+
+  const nameEl = document.getElementById('exerciseName');
+  nameEl.textContent = `${seg.emoji} ${seg.name}`;
+  nameEl.className = `session-exercise-name ${isRun ? 'run' : 'station'}-phase`;
+
+  document.getElementById('exerciseDetail').textContent = seg.detail;
+
+  // Timer ring color
+  const fill = document.getElementById('timerRingFill');
+  const glow = document.getElementById('timerGlowRing');
+  const timeEl = document.getElementById('timerDisplay');
+  fill.className = `timer-ring-fill ${isRun ? 'run' : 'station'}`;
+  glow.className = `timer-glow-ring ${isRun ? 'run' : 'station'} active`;
+  timeEl.className = `timer-time ${isRun ? 'run' : 'station'}`;
+
+  // Target label
+  const targetLabel = document.getElementById('timerTargetLabel');
+  if (isRun && seg.targetSecs) {
+    const m = Math.floor(seg.targetSecs / 60);
+    const s = seg.targetSecs % 60;
+    targetLabel.textContent = `Target: ${m}:${s.toString().padStart(2,'0')}`;
+    document.getElementById('timerModeLabel').textContent = 'COUNTING UP';
+  } else {
+    targetLabel.textContent = isRun ? 'Count up' : 'Station — tap DONE when finished';
+    document.getElementById('timerModeLabel').textContent = 'ELAPSED';
+  }
+
+  // Ring — for runs count to target, for stations just fill
+  resetRing(isRun ? seg.targetSecs : 0, isRun ? 'run' : 'station');
+
+  // Next up preview
+  renderNextUp(idx);
+
+  // Done button text
+  const doneBtn = document.getElementById('doneBtn');
+  if (idx === RACE_SEGMENTS.length - 1) {
+    doneBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:22px;height:22px"><polyline points="20,6 9,17 4,12"/></svg> FINISH SESSION!';
+  } else if (isRun) {
+    doneBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:22px;height:22px"><polyline points="20,6 9,17 4,12"/></svg> RUN DONE — NEXT';
+  } else {
+    doneBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:22px;height:22px"><polyline points="20,6 9,17 4,12"/></svg> DONE — START REST';
+  }
+
+  updatePipeline(idx);
+}
+
+function renderNextUp(idx) {
+  const next = RACE_SEGMENTS[idx + 1];
+  const previewEl = document.getElementById('nextUpPreview');
+  if (!next) { previewEl.style.display = 'none'; return; }
+  previewEl.style.display = 'flex';
+  document.getElementById('nextIcon').textContent = next.emoji;
+  document.getElementById('nextName').textContent = next.name;
+  const cur = RACE_SEGMENTS[idx];
+  document.getElementById('nextDetail').textContent =
+    cur.restAfterSecs ? `${cur.restAfterSecs}s rest first · then ${next.detail.split('·')[0].trim()}` : next.detail.split('·')[0].trim();
+  document.getElementById('nextTime').textContent = next.targetSecs
+    ? `~${Math.floor(next.targetSecs/60)}:${(next.targetSecs%60).toString().padStart(2,'0')}`
+    : '?:??';
+}
+
+// ---- RING CONTROL -----------------------------------------------
+function resetRing(targetSecs, mode) {
+  const fill = document.getElementById('timerRingFill');
+  fill.style.strokeDashoffset = '0';
+  // store for tick
+  fill._target = targetSecs;
+  fill._mode = mode;
+}
+
+function updateRing(elapsed, targetSecs, ringId) {
+  const fill = document.getElementById(ringId);
+  if (!fill) return;
+  if (targetSecs > 0) {
+    // count-up toward target: fill ring as progress
+    const progress = Math.min(elapsed / targetSecs, 1);
+    fill.style.strokeDashoffset = CIRC * (1 - progress);
+  } else {
+    // no target — just pulse slowly (station, no timer)
+    const pulse = (Math.sin(elapsed * 0.5) + 1) / 2;
+    fill.style.strokeDashoffset = CIRC * 0.1 + CIRC * 0.15 * pulse;
+  }
+}
+
+function updateRestRing(remaining, total) {
+  const fill = document.getElementById('restRingFill');
+  if (!fill) return;
+  const progress = remaining / total;
+  fill.style.strokeDashoffset = CIRC * (1 - progress);
+}
+
+// ---- MAIN TICK --------------------------------------------------
+function startTick() {
+  clearInterval(mainInterval);
+  mainInterval = setInterval(() => {
+    if (paused) return;
+
+    totalElapsedSec++;
+    document.getElementById('totalElapsed').textContent = fmtTime(totalElapsedSec);
+
+    if (inRest) {
+      restRemaining = Math.max(0, restRemaining - 1);
+      document.getElementById('restDisplay').textContent = fmtTime(restRemaining);
+      updateRestRing(restRemaining, RACE_SEGMENTS[currentSegIdx].restAfterSecs);
+
+      // Flash warning at 5s
+      if (restRemaining <= 5 && restRemaining > 0) {
+        document.getElementById('restDisplay').classList.add('timer-warn');
+        vibe(50);
+      } else {
+        document.getElementById('restDisplay').classList.remove('timer-warn');
+      }
+
+      if (restRemaining <= 0) {
+        // Auto-advance to next segment
+        advanceSegment();
+      }
+    } else {
+      segElapsed++;
+      document.getElementById('timerDisplay').textContent = fmtTime(segElapsed);
+
+      const seg = RACE_SEGMENTS[currentSegIdx];
+      updateRing(segElapsed, seg.targetSecs, 'timerRingFill');
+
+      // For runs: flash if over target
+      if (seg.type === 'run' && seg.targetSecs > 0 && segElapsed > seg.targetSecs) {
+        document.getElementById('timerDisplay').classList.add('timer-warn');
+      } else {
+        document.getElementById('timerDisplay').classList.remove('timer-warn');
+      }
+    }
+  }, 1000);
+}
+
+// ---- COMPLETE CURRENT SEGMENT ----------------------------------
+function completeCurrent() {
+  vibe([30, 50, 30]);
+  const seg = RACE_SEGMENTS[currentSegIdx];
+  segmentTimes.push(segElapsed);
+  segElapsed = 0;
+
+  // Last segment? — session complete
+  if (currentSegIdx >= RACE_SEGMENTS.length - 1) {
+    showSessionComplete();
+    return;
+  }
+
+  // Has rest after?
+  if (seg.restAfterSecs > 0) {
+    startRest(seg.restAfterSecs);
+  } else {
+    advanceSegment();
+  }
+}
+
+// ---- START REST ------------------------------------------------
+function startRest(secs) {
+  inRest = true;
+  restRemaining = secs;
+  const nextSeg = RACE_SEGMENTS[currentSegIdx + 1];
+
+  document.getElementById('sessionBg').className = 'session-bg rest-mode';
+  document.getElementById('restTitle').textContent = `${secs}s REST`;
+  document.getElementById('restSubtitle').textContent =
+    `Catch your breath · Next: ${nextSeg.emoji} ${nextSeg.name}`;
+  document.getElementById('restNextIcon').textContent = nextSeg.emoji;
+  document.getElementById('restNextName').textContent = nextSeg.name;
+  document.getElementById('restNextDetail').textContent = nextSeg.detail.split('·')[0];
+
+  // Reset rest ring
+  const restFill = document.getElementById('restRingFill');
+  restFill.style.strokeDashoffset = '0';
+  document.getElementById('restDisplay').textContent = fmtTime(secs);
+  document.getElementById('restDisplay').classList.remove('timer-warn');
+
+  updatePipeline(currentSegIdx);
+  switchSessionPhase('rest');
+  vibe([0, 100, 30, 100]);
+}
+
+// ---- ADVANCE TO NEXT SEGMENT ------------------------------------
+function advanceSegment() {
+  inRest = false;
+  currentSegIdx++;
+  segElapsed = 0;
+
+  document.getElementById('sessionBg').className = 'session-bg';
+  renderSegment(currentSegIdx);
+  switchSessionPhase('active');
+  vibe(40);
+}
+
+// ---- SKIP REST -------------------------------------------------
+function skipRest() {
+  if (inRest) {
+    restRemaining = 0;
+    advanceSegment();
+  }
+}
+
+// ---- ADD TIME TO REST ------------------------------------------
+function addTime(secs) {
+  restRemaining += secs;
+  const seg = RACE_SEGMENTS[currentSegIdx];
+  // update displayed target
+  document.getElementById('restDisplay').textContent = fmtTime(restRemaining);
+}
+
+// ---- RESTART CURRENT -------------------------------------------
+function restartCurrent() {
+  segElapsed = 0;
+  document.getElementById('timerDisplay').textContent = '0:00';
+  document.getElementById('timerDisplay').classList.remove('timer-warn');
+  resetRing(RACE_SEGMENTS[currentSegIdx].targetSecs,
+            RACE_SEGMENTS[currentSegIdx].type === 'run' ? 'run' : 'station');
+}
+
+// ---- PAUSE / RESUME -------------------------------------------
+function pauseTimer() {
+  paused = !paused;
+  const btn = document.getElementById('pauseBtn');
+  btn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+  document.getElementById('timerRingContainer').classList.toggle('ticking', !paused);
+}
+
+// ---- SWITCH UI PHASE -------------------------------------------
+function switchSessionPhase(phase) {
+  document.getElementById('phaseActive').style.display   = phase === 'active'   ? 'flex' : 'none';
+  document.getElementById('phaseRest').style.display     = phase === 'rest'     ? 'flex' : 'none';
+  document.getElementById('phaseComplete').style.display = phase === 'complete'  ? 'flex' : 'none';
+  document.querySelector('#phaseRest').style.flexDirection = 'column';
+  document.querySelector('#phaseComplete').style.flexDirection = 'column';
+}
+
+// ---- SESSION COMPLETE ------------------------------------------
+function showSessionComplete() {
+  clearInterval(mainInterval);
+  sessionActive = false;
+
+  document.getElementById('sessionBg').className = 'session-bg done-mode';
+  document.getElementById('finalTime').textContent = fmtTime(totalElapsedSec);
+
+  // crude PR calc vs last session (stored in localStorage if available)
+  try {
+    const last = localStorage.getItem('ironrox_lastSessionTime');
+    if (last) {
+      const diff = parseInt(last) - totalElapsedSec;
+      document.getElementById('finalPR').textContent =
+        (diff >= 0 ? '-' : '+') + fmtTime(Math.abs(diff));
+      document.getElementById('finalPR').style.color = diff >= 0 ? 'var(--lime)' : 'var(--orange)';
+    }
+    localStorage.setItem('ironrox_lastSessionTime', totalElapsedSec);
+  } catch(e) {}
+
+  vibe([100, 50, 100, 50, 200]);
+  switchSessionPhase('complete');
+}
+
+// ---- END SESSION -----------------------------------------------
+function endSession() {
+  clearInterval(mainInterval);
+  sessionActive = false;
+  paused = false;
+  document.getElementById('sessionOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+
+  // Mark all stations done on dashboard
+  for (let i = 1; i <= 4; i++) toggleStation(i, true);
+}
+
+// ---- CONFIRM END (mid-session quit) ----------------------------
+function confirmEndSession() {
+  if (!sessionActive) { endSession(); return; }
+  if (confirm('End session early? Your progress will be saved.')) {
+    endSession();
+  }
+}
+
+// ---- FORMAT TIME -----------------------------------------------
+function fmtTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+
+// ---- KEEP SCREEN AWAKE (Wake Lock API) -------------------------
+let wakeLockHandle = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLockHandle = await navigator.wakeLock.request('screen');
+    }
+  } catch (e) {}
+}
+async function releaseWakeLock() {
+  try { if (wakeLockHandle) { await wakeLockHandle.release(); wakeLockHandle = null; } } catch(e) {}
+}
+
+// =================================================================
+//  AUDIO ENGINE — Web Audio API (no external files needed)
+// =================================================================
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq, dur, vol, type='sine', delay=0) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + delay;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+  } catch(e) {}
+}
+
+// Named sound events
+const SFX = {
+  start:    () => { beep(440,0.15,0.4); beep(660,0.15,0.4,  'sine',0.18); beep(880,0.3,0.5,'sine',0.36); },
+  done:     () => { beep(660,0.12,0.35); beep(880,0.25,0.4,'sine',0.14); },
+  restStart:() => { beep(330,0.2,0.3,'sine'); beep(220,0.4,0.25,'sine',0.22); },
+  countdown:() => beep(600,0.08,0.25,'square'),
+  finalBeep:() => { beep(880,0.1,0.5); beep(880,0.1,0.5,'sine',0.15); beep(880,0.1,0.5,'sine',0.3); },
+  complete: () => { [440,550,660,880].forEach((f,i)=>beep(f,0.2,0.45,'sine',i*0.15)); },
+  warning:  () => beep(400,0.1,0.3,'sawtooth'),
+};
+
+// =================================================================
+//  VOICE ANNOUNCEMENTS — SpeechSynthesis API
+// =================================================================
+let voiceEnabled = true;
+
+function speak(text, priority=false) {
+  if (!voiceEnabled) return;
+  try {
+    if (priority) window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 1.05; utt.pitch = 1.0; utt.volume = 1.0;
+    // pick a clear English voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+                   || voices.find(v => v.lang.startsWith('en'))
+                   || voices[0];
+    if (preferred) utt.voice = preferred;
+    window.speechSynthesis.speak(utt);
+  } catch(e) {}
+}
+
+// Preload voices (some browsers need this trigger)
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+// =================================================================
+//  PRE-SESSION CHECKLIST — shown before session starts
+// =================================================================
+const PRE_CHECKLIST = [
+  { id:'c1', icon:'👟', text:'Running shoes laced & tight' },
+  { id:'c2', icon:'💧', text:'Water bottle filled (500ml+)' },
+  { id:'c3', icon:'📱', text:'Phone volume UP for voice cues' },
+  { id:'c4', icon:'⌚', text:'Watch/HR monitor on wrist' },
+  { id:'c5', icon:'🍌', text:'Pre-workout snack eaten (30–60 min ago)' },
+  { id:'c6', icon:'🎧', text:'Earbuds charged & connected' },
+];
+
+let checklistDone = new Set();
+
+function showPreChecklist() {
+  // Build & show checklist overlay
+  let existingOverlay = document.getElementById('checklistOverlay');
+  if (existingOverlay) { existingOverlay.style.display = 'flex'; return; }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'checklistOverlay';
+  overlay.style.cssText = `position:fixed;inset:0;z-index:190;background:rgba(0,0,0,0.85);
+    display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)`;
+
+  overlay.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px 20px 0 0;
+      width:100%;max-width:540px;padding:24px 24px max(24px,env(safe-area-inset-bottom));
+      position:relative">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--lime),var(--orange));border-radius:20px 20px 0 0"></div>
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-family:var(--font-head);font-size:28px;font-weight:900;letter-spacing:0.5px">
+          PRE-SESSION <span style="color:var(--lime)">CHECK</span>
+        </div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">Saturday HYROX Comp Simulation</div>
+      </div>
+      <div id="checklistItems" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+        ${PRE_CHECKLIST.map(item => `
+          <div id="cli_${item.id}" onclick="toggleCheck('${item.id}')" style="display:flex;align-items:center;gap:14px;
+            background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px;
+            cursor:pointer;transition:all 0.2s">
+            <div style="font-size:22px;flex-shrink:0">${item.icon}</div>
+            <div style="flex:1;font-size:14px;font-weight:500">${item.text}</div>
+            <div id="cbox_${item.id}" style="width:24px;height:24px;border-radius:6px;border:2px solid var(--border);
+              display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s"></div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 14px;
+        background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--lime);flex-shrink:0"></div>
+        <div style="font-size:12px;color:var(--text2);flex:1">Voice cues will announce each exercise. Turn volume up.</div>
+        <button onclick="voiceEnabled=!voiceEnabled;this.textContent=voiceEnabled?'🔊 ON':'🔇 OFF'"
+          style="background:var(--bg4);border:1px solid var(--border);color:var(--lime);
+          font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:var(--font-body)">
+          🔊 ON
+        </button>
+      </div>
+      <button id="checklistLaunchBtn" onclick="launchFromChecklist()"
+        style="width:100%;padding:18px;background:var(--bg4);color:var(--text3);
+        border:2px solid var(--border);border-radius:14px;
+        font-family:var(--font-head);font-size:20px;font-weight:900;cursor:pointer;
+        transition:all 0.2s;letter-spacing:0.5px" id="checklistLaunchBtn">
+        ✓ Tick all items to launch
+      </button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+}
+
+function toggleCheck(id) {
+  const box = document.getElementById(`cbox_${id}`);
+  const row = document.getElementById(`cli_${id}`);
+  if (checklistDone.has(id)) {
+    checklistDone.delete(id);
+    box.innerHTML = '';
+    box.style.background = '';
+    box.style.borderColor = 'var(--border)';
+    row.style.borderColor = 'var(--border)';
+    row.style.background = 'var(--bg3)';
+  } else {
+    checklistDone.add(id);
+    box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" style="width:13px;height:13px"><polyline points="20,6 9,17 4,12"/></svg>';
+    box.style.background = 'var(--lime)';
+    box.style.borderColor = 'var(--lime)';
+    row.style.borderColor = 'rgba(200,241,53,0.4)';
+    row.style.background = 'rgba(200,241,53,0.05)';
+    beep(660, 0.1, 0.2);
+  }
+  // Update launch button
+  const btn = document.getElementById('checklistLaunchBtn');
+  const allDone = checklistDone.size >= PRE_CHECKLIST.length;
+  btn.style.background = allDone ? 'var(--lime)' : 'var(--bg4)';
+  btn.style.color = allDone ? '#000' : 'var(--text3)';
+  btn.style.borderColor = allDone ? 'var(--lime)' : 'var(--border)';
+  btn.textContent = allDone
+    ? `🚀 LET'S GO — START SESSION`
+    : `${checklistDone.size}/${PRE_CHECKLIST.length} checked — keep going`;
+}
+
+function launchFromChecklist() {
+  if (checklistDone.size < PRE_CHECKLIST.length) {
+    beep(200, 0.2, 0.3, 'sawtooth');
+    const btn = document.getElementById('checklistLaunchBtn');
+    btn.style.animation = 'none';
+    btn.textContent = `⚠ Check all ${PRE_CHECKLIST.length} items first!`;
+    setTimeout(() => {
+      btn.textContent = `${checklistDone.size}/${PRE_CHECKLIST.length} checked — keep going`;
+    }, 1500);
+    return;
+  }
+  document.getElementById('checklistOverlay').style.display = 'none';
+  startSession();
+}
+
+// =================================================================
+//  OVERRIDE startSession to show checklist first
+// =================================================================
+const _startSessionOriginal = startSession;
+function startSession() {
+  // Unlock AudioContext on first user gesture (required by browsers)
+  if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  showPreChecklist();
+}
+
+// =================================================================
+//  PATCH the real session start to use audio + voice
+// =================================================================
+const _origStartSession = _startSessionOriginal;
+
+function startSessionCore() {
+  // Reset state
+  currentSegIdx   = 0;
+  inRest          = false;
+  paused          = false;
+  segElapsed      = 0;
+  restRemaining   = 0;
+  totalElapsedSec = 0;
+  segmentTimes    = [];
+  sessionActive   = true;
+
+  requestWakeLock();
+  document.getElementById('sessionOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  buildPipeline();
+  renderSegment(0);
+  startTick();
+  switchSessionPhase('active');
+
+  // Welcome voice
+  setTimeout(() => {
+    SFX.start();
+    setTimeout(() => speak('Session starting. First up: 1 kilometre run. Good luck!', true), 500);
+  }, 300);
+}
+
+// Wire launchFromChecklist → startSessionCore (real launch)
+const _origLaunchFromChecklist = launchFromChecklist;
+function launchFromChecklist() {
+  if (checklistDone.size < PRE_CHECKLIST.length) {
+    beep(200, 0.2, 0.3, 'sawtooth');
+    const btn = document.getElementById('checklistLaunchBtn');
+    btn.textContent = `⚠ Check all ${PRE_CHECKLIST.length} items first!`;
+    setTimeout(() => {
+      btn.textContent = `${checklistDone.size}/${PRE_CHECKLIST.length} checked — keep going`;
+    }, 1500);
+    return;
+  }
+  document.getElementById('checklistOverlay').style.display = 'none';
+  startSessionCore();
+}
+
+// =================================================================
+//  PATCH completeCurrent for audio + voice
+// =================================================================
+const _origCompleteCurrent = completeCurrent;
+function completeCurrent() {
+  const seg = RACE_SEGMENTS[currentSegIdx];
+  const actualTime = segElapsed;
+  segmentTimes.push(actualTime);
+  segElapsed = 0;
+
+  SFX.done();
+  vibe([30, 50, 30]);
+
+  if (currentSegIdx >= RACE_SEGMENTS.length - 1) {
+    SFX.complete();
+    vibe([100,50,100,50,200]);
+    speak('Session complete! Outstanding effort. You are race ready!', true);
+    showSessionComplete();
+    return;
+  }
+
+  const nextSeg = RACE_SEGMENTS[currentSegIdx + 1];
+
+  if (seg.restAfterSecs > 0) {
+    speak(`Good work! ${seg.restAfterSecs} second rest. Next up: ${nextSeg.name}.`, true);
+    startRest(seg.restAfterSecs);
+  } else {
+    speak(`Starting ${nextSeg.name}. Go!`, true);
+    advanceSegment();
+  }
+}
+
+// =================================================================
+//  PATCH startTick for rest countdown voice cues
+// =================================================================
+const _origStartTick = startTick;
+function startTick() {
+  clearInterval(mainInterval);
+  mainInterval = setInterval(() => {
+    if (paused) return;
+
+    totalElapsedSec++;
+    document.getElementById('totalElapsed').textContent = fmtTime(totalElapsedSec);
+
+    if (inRest) {
+      restRemaining = Math.max(0, restRemaining - 1);
+      document.getElementById('restDisplay').textContent = fmtTime(restRemaining);
+      updateRestRing(restRemaining, RACE_SEGMENTS[currentSegIdx].restAfterSecs || 90);
+
+      // Voice countdowns
+      if (restRemaining === 30) { SFX.countdown(); speak('30 seconds rest remaining.'); }
+      if (restRemaining === 10) { SFX.countdown(); speak('10 seconds.'); }
+      if (restRemaining <= 5 && restRemaining > 0) {
+        SFX.warning();
+        document.getElementById('restDisplay').classList.add('timer-warn');
+        vibe(40);
+        if (restRemaining <= 3) speak(String(restRemaining));
+      }
+      if (restRemaining === 0) {
+        document.getElementById('restDisplay').classList.remove('timer-warn');
+        SFX.finalBeep();
+        advanceSegment();
+        const nSeg = RACE_SEGMENTS[currentSegIdx];
+        setTimeout(() => speak(`Go! ${nSeg.name}!`, true), 200);
+      }
+    } else {
+      segElapsed++;
+      document.getElementById('timerDisplay').textContent = fmtTime(segElapsed);
+
+      const seg = RACE_SEGMENTS[currentSegIdx];
+      updateRing(segElapsed, seg.targetSecs, 'timerRingFill');
+
+      // Pace warnings for runs
+      if (seg.type === 'run' && seg.targetSecs > 0) {
+        if (segElapsed === seg.targetSecs) {
+          SFX.countdown();
+          speak('Target pace hit! Finish your run!');
+        }
+        if (segElapsed > seg.targetSecs) {
+          document.getElementById('timerDisplay').classList.add('timer-warn');
+          if (segElapsed === seg.targetSecs + 15) speak('Slightly over pace. Push!');
+        } else {
+          document.getElementById('timerDisplay').classList.remove('timer-warn');
+        }
+        // Halfway voice cue
+        if (segElapsed === Math.floor(seg.targetSecs / 2)) speak('Halfway. Looking strong!');
+      }
+
+      // Station encouragement at 1 min mark
+      if (seg.type === 'station' && segElapsed === 60) speak('One minute in. Keep it moving!');
+      if (seg.type === 'station' && segElapsed === 120) speak('Two minutes. Push through!');
+    }
+  }, 1000);
+}
+
+// =================================================================
+//  PATCH endSession to release wake lock
+// =================================================================
+const _origEndSession = endSession;
+function endSession() {
+  clearInterval(mainInterval);
+  sessionActive = false;
+  paused = false;
+  releaseWakeLock();
+  document.getElementById('sessionOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  // Show red zone cleared on dashboard
+  document.getElementById('redZoneAlert').style.display = 'none';
+}
+
+// =================================================================
+//  LIVE CLOCK — update date/time badge in topbar
+// =================================================================
+function updateLiveClock() {
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const day = days[now.getDay()];
+  const isSat = now.getDay() === 6;
+  // Update Saturday badge
+  const badge = document.getElementById('saturdayBadge');
+  if (badge) badge.textContent = isSat ? '🔥 TODAY' : 'TOMORROW';
+  if (isSat && badge) badge.style.background = 'rgba(200,241,53,0.2)';
+}
+updateLiveClock();
+setInterval(updateLiveClock, 60000);
+
+// =================================================================
+//  INIT on app launch
+// =================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  requestWakeLock();
+  updateLiveClock();
+});
+
 </script>
 </body>
 </html>
